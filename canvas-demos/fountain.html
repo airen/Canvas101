@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Canvas Particle Fountain</title>
+    <style type="text/css" media="screen">
+    * {
+        margin: 0;
+        padding: 0
+    }
+    
+    canvas {
+        background: black;
+        display: block;
+    }
+    </style>
+</head>
+
+<body>
+    <canvas id="canvasOne" width="500" height="300">
+    </canvas>
+    <script>
+    window.addEventListener('load', eventWindowLoaded, false);
+
+    var Debugger = function() {};
+
+    Debugger.log = function(message) {
+        try {
+            console.log(message);
+        } catch (exception) {
+            return;
+        }
+    }
+
+    function eventWindowLoaded() {
+        canvasApp();
+    }
+
+    function canvasApp() {
+
+        var theCanvas = document.getElementById('canvasOne');
+        var context = theCanvas.getContext('2d');
+
+        Debugger.log('Drawing Canvas');
+
+        var balls = [],
+            numBalls = 80,
+            gravity = 0.5,
+            color = 0;
+
+        theCanvas.width = window.innerWidth;
+        theCanvas.height = window.innerHeight;
+
+        var Circle = function() {
+            this.radius = 5;
+            this.x = theCanvas.width / 2;
+            this.y = theCanvas.height / 2;
+            this.vx = Math.random() * 2 - 1;
+            this.vy = -(Math.random() * 10) - 10;
+            this.color = 'red';
+        }
+
+        Circle.prototype.draw = function() {
+            context.save();
+            context.fillStyle = this.color;
+            context.beginPath();
+            context.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+            context.fill();
+            context.restore();
+        }
+
+        for (var i = 0; i < numBalls; ++i) {
+            balls.push(new Circle());
+        }
+
+        function draw(ball) {
+            ball.vy += gravity;
+            ball.x += ball.vx;
+            ball.y += ball.vy;
+            ball.color = 'hsla(' + color + ', 100%, 50%, 1)';
+
+            if ((ball.x - ball.radius) > theCanvas.width || (ball.x + ball.radius) < 0 || (ball.y - ball.radius > theCanvas.height) || (ball.y + ball.radius) < 0) {
+                ball.x = theCanvas.width / 2;
+                ball.y = theCanvas.height;
+                ball.vx = Math.random() * 4 - 1;
+                ball.vy = -(Math.random() * 20) - 10;
+            }
+
+            ball.draw();
+        }
+
+        window.requestAnimFrame = window.requestAnimationFrame || window.webkitRequestAnimationFrame || window.mozRequestAnimationFrame || window.oRequestAnimationFrame || window.msRequestAnimationFrame || function(callback) {
+            window.setTimeout(callback, 1000 / 60);
+        }
+
+        function drawScreen() {
+
+            requestAnimFrame(drawScreen);
+            context.clearRect(0, 0, theCanvas.width, theCanvas.height);
+            balls.forEach(draw);
+            color++;
+
+        }
+
+        drawScreen();
+    }
+    </script>
+</body>
+
+</html>

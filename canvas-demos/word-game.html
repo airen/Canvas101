@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>猜字母</title>
+</head>
+
+<body>
+    <canvas id="canvasOne" width="500" height="300">
+    </canvas>
+    <form >
+    	<input type="button" id="createImageData" value="Export Canvas Image" />
+    </form>
+    <script>
+    window.addEventListener('load', eventWindowLoaded, false);
+
+    var Debugger = function() {};
+
+    Debugger.log = function(message) {
+        try {
+            console.log(message);
+        } catch (exception) {
+            return;
+        }
+    }
+
+    function eventWindowLoaded() {
+        canvasApp();
+    }
+
+    function canvasApp() {
+        // 保存玩家按键次数,次数越少，玩家越厉害
+        var guesses = 0;
+        // 向玩家提示游戏玩法
+        var message = 'Guess The Letter From a (lower) to z (higher)';
+        // 数组保存字母表中的每个字母
+        // 一方用来随机挑选一个游戏的秘密字母
+        // 另一方面用来计算字母在字母表中的相对位置
+        var letters = [
+            'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'
+        ];
+        // 保存当前日期，仅在屏幕上显示
+        var today = new Date();
+        // 保存当前被猜的游戏秘密字母
+        var letterToGuess = '';
+        // 存储文本“Higher”或“Lower”
+        // 具体取决于最后一次猜的字母与秘密字母的位置关系
+        // 如果离a更近，则显示“Lower”
+        // 如果离z更近，则显示“Higher”
+        var higherOrLower = '';
+        // 数组保存玩家已经猜过的字母集合
+        var lettersGuessed;
+        // 在玩家获胜前都设为false
+        // 程序能通过它知道何时在屏幕上显示“You Win”
+        // 玩家之后就不用再猜了
+        var gameOver = false;
+
+        var theCanvas = document.getElementById('canvasOne');
+        var context = theCanvas.getContext('2d');
+
+        Debugger.log('Drawing Canvas');
+
+        initGame();
+
+        //初始化游戏
+        function initGame() {
+            // 从字母数组中找出一个随机字母
+            var letterIndex = Math.floor(Math.random() * letters.length);
+            // 将拿到的随机字母存在letterToGuess中
+            letterToGuess = letters[letterIndex];
+            guesses = 0;
+            lettersGuessed = [];
+            gameOver = false;
+
+            // 监听键盘的 keydown事件
+            // 某个键按下时，调用eventKeyPressed事件处理函数检测按下的字母
+            window.addEventListener('keydown', eventKeyPressed, true);
+
+            var formElement = document.getElementById('createImageData');
+            formElement.addEventListener('click', createImageDataPressed, false);
+            
+            drawScreen();
+        }
+
+        function eventKeyPressed(e) {
+            if (!gameOver) {
+                var letterPressed = String.fromCharCode(e.keyCode);
+                letterPressed = letterPressed.toLowerCase();
+                guesses++;
+                lettersGuessed.push(letterPressed);
+
+                if (letterPressed == letterToGuess) {
+                    gameOver = true;
+                } else {
+                    letterIndex = letters.indexOf(letterToGuess);
+                    guessIndex = letters.indexOf(letterPressed);
+                    Debugger.log(guessIndex);
+                    if (guessIndex < 0) {
+                        higherOrLower = 'That is not a letter';
+                    } else if (guessIndex > letterIndex) {
+                        higherOrLower = 'Lower';
+                    } else {
+                        higherOrLower = 'Higher';
+                    }
+                }
+                drawScreen();
+            }
+        }
+
+        function drawScreen() {
+        	// 背景
+        	context.fillStyle = '#ffffaa';
+        	context.fillRect(0,0,500,300);
+
+        	// 边框
+        	context.strokeStyle = '#000000';
+        	context.strokeRect(5,5,490,290);
+
+        	// 文本
+        	context.textBaseline = 'top';
+
+        	// 日期
+        	context.fillStyle = '#000000';
+        	context.font = '10px Sans-Serif';
+        	context.fillText(today, 150, 10);
+
+        	// 消息
+        	context.fillStyle = '#ff0000';
+        	context.font = '14px Sans-Serif';
+        	context.fillText(message, 125, 30);
+
+        	// 猜的次数
+        	context.fillStyle = '#109910';
+        	context.font = '16px Sans-Serif';
+        	context.fillText('Guesses: ' + guesses, 215, 50);
+
+        	// 显示Higher 或 Lower
+        	context.fillStyle = '#000000';
+        	context.font = '16px Sans-Serif';
+        	context.fillText('Higher Or Lower: ' + higherOrLower, 150, 125);
+
+        	// 猜过的字母
+        	context.fillStyle = '#ff0000';
+        	context.font = '16px Sans-Serif';
+        	context.fillText('Letters Guessed: ' + lettersGuessed.toString(), 10, 260);
+
+        	if (gameOver) {
+        		context.fillStyle = '#ff0000';
+        		context.font = '40px Sans-Serif';
+        		context.fillText('You Got It', 150, 180);
+        	}
+        }
+
+        function createImageDataPressed(e){
+        	window.open(theCanvas.toDataURL(), 'canvasImage', 'left=0,top=0,width=' + theCanvas.width + ',height=' + theCanvas.height + ',toolbar=0,resizeable=0');
+        }
+    }
+    </script>
+</body>
+
+</html>

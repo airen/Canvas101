@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Sphere In HTML5 Canvas</title>
+    <style>
+    html,
+    body {
+        background: #111;
+        text-align: center;
+    }
+    
+    canvas {
+        margin: 0 auto;
+        box-sizing: content-box;
+    }
+    </style>
+</head>
+
+<body>
+    <canvas id="canvasOne" width="500" height="300">
+    </canvas>
+    <script>
+    window.addEventListener('load', eventWindowLoaded, false);
+
+    var Debugger = function() {};
+
+    Debugger.log = function(message) {
+        try {
+            console.log(message);
+        } catch (exception) {
+            return;
+        }
+    }
+
+    function eventWindowLoaded() {
+        canvasApp();
+    }
+
+    function canvasApp() {
+
+        var theCanvas = document.getElementById('canvasOne');
+        var context = theCanvas.getContext('2d');
+
+        theCanvas.width = window.innerWidth;
+        theCanvas.height = window.innerHeight;
+
+        Debugger.log('Drawing Canvas');
+
+        var sphere = new Sphere3D(40),
+            distance = 300,
+            mouse = {
+                down: false,
+                button: 1,
+                x: 0,
+                y: 0,
+                px: 0,
+                py: 0
+            },
+            modify = 1;
+
+        window.requestAnimFrame = window.requestAnimationFrame || window.webkitRequestAnimationFrame || window.mozRequestAnimationFrame || window.oRequestAnimationFrame || window.msRequestAnimationFrame || function(callback) {
+            window.setTimeout(callback, 1000 / 60);
+        }
+
+		window.onresize = function(event) {
+            theCanvas.width = window.innerWidth;
+            theCanvas.height = window.innerHeight;
+        }
+
+        function Point3D() {
+            this.x = 0;
+            this.y = 0;
+            this.z = 0;
+        }
+
+        function Sphere3D(radius) {
+            this.point = new Array();
+            this.color = 'rgb(100, 255, 0)';
+            this.radius = (typeof(radius) == 'undefined') ? 20.0 : radius;
+            this.radius = (typeof(radius) != 'number') ? 20.0 : radius;
+
+            this.numberOfVertexes = 0;
+
+            for (alpha = 0; alpha <= 6.28; alpha += 0.17) {
+                p = this.point[this.numberOfVertexes] = new Point3D();
+                p.x = Math.cos(alpha) * this.radius;
+                p.y = 0;
+                p.z = Math.sin(alpha) * this.radius;
+                this.numberOfVertexes++;
+            }
+
+            for (var direction = 1; direction >= -1; direction -= 2) {
+                for (var beta = 0.19; beta < 1.445; beta += 0.17) {
+                    var radius = Math.cos(beta) * this.radius;
+                    var fixedY = Math.sin(beta) * this.radius * direction;
+
+                    for (var alpha = 0; alpha < 6.28; alpha += 0.17) {
+                        p = this.point[this.numberOfVertexes] = new Point3D();
+                        p.x = Math.cos(alpha) * radius;
+                        p.y = fixedY;
+                        p.z = Math.sin(alpha) * radius;
+
+                        this.numberOfVertexes++;
+                    }
+                }
+            }
+        }
+
+        function rotateX(point, radians) {
+            var y = point.y;
+            point.y = (y * Math.cos(radians)) + (point.z * Math.sin(radians) * -1.0);
+            point.z = (y * Math.sin(radians)) + (point.z * Math.cos(radians));
+        }
+
+        function rotateY(point, radians) {
+            var x = point.x;
+            point.x = (x * Math.cos(radians)) + (point.z * Math.sin(radians) * -1.0);
+            point.z = (x * Math.sin(radians)) + (point.z * Math.cos(radians));
+        }
+
+        function rotatZ(point, radians) {
+        	var x = point.x;
+        	point.x = (x * Math.cos(radians)) + (point.y * Math.sin(radians) * -1.0);
+        	point.y = (x * Math.sin(radians)) + (point.y * Math.cos(radians));
+        }
+
+        function projection(xy, z, xyOffset, zOffset, distance) {
+            return ((distance * xy) / (z - zOffset)) + xyOffset;
+        }
+
+        function drawPoint(context, x, y, size, color) {
+            context.save();
+            context.beginPath();
+            context.fillStyle = color;
+            context.arc(x, y, size, 0, 2 * Math.PI, true);
+            context.fill();
+            context.restore();
+        }
+
+        function drawPointWithGradient(context, x, y, size, gradient) {
+            var reflection;
+
+            reflection = size / 4;
+
+            // 0 - 5
+            var middle = theCanvas.width / 2;
+            var a = mouse.y - middle;
+
+            context.save();
+            context.translate(x, y);
+
+            var radgrad = context.createRadialGradient(-reflection, -reflection, reflection, 0, 0, size);
+
+            var r = 1,
+                g = 1,
+                b = 200;
+
+            var color = 'rgb(' + r + ',' + g + ',' + b + ')';
+
+            radgrad.addColorStop(0, '#ffffff');
+            radgrad.addColorStop(gradient, color);
+            radgrad.addColorStop(1, 'rgba(1, 159, 98, 0)');
+
+            context.fillStyle = radgrad;
+            context.fillRect(-size, -size, size * 2, size * 2);
+            context.restore();
+        }
+
+        function update() {
+            context.save();
+            context.clearRect(0, 0, theCanvas.width, theCanvas.height);
+
+            for (i = 0; i < sphere.numberOfVertexes; i++) {
+                p.x = sphere.point[i].x;
+                p.y = sphere.point[i].y;
+                p.z = sphere.point[i].z;
+
+                rotateX(p, Math.sin(+new Date / 360));
+                rotateY(p, Math.cos(+new Date / 360));
+
+                modify = Math.min(Math.abs(mouse.px - (theCanvas.width / 2)) / (theCanvas.width / 2) * 1.25, 1.25);
+
+                x = projection(p.x, p.z * modify, theCanvas.width / 2.0, 100.0, distance);
+                y = projection(p.y, p.z * modify, theCanvas.height / 2.0, 100.0, distance);
+
+                if ((x >= 0) && (x < theCanvas.width)) {
+                    if ((y >= 0) && (y < theCanvas.height)) {
+                        if (p.z < 0) {
+                            drawPoint(context, x, y, 1, 'rgba(200, 200, 200, 0.6)')
+                        } else {
+                            drawPointWithGradient(context, x, y, 5, 0.8);
+                        }
+                    }
+                }
+            }
+
+            context.restore();
+
+            requestAnimFrame(update);
+        }
+
+        function drawScreen() {
+
+            theCanvas.onmousemove = function(e) {
+                mouse.px = mouse.x;
+                mouse.py = mouse.y;
+
+                var rect = theCanvas.getBoundingClientRect();
+
+                mouse.x = e.clientX - rect.left;
+                mouse.y = e.clientY - rect.top;
+
+                e.preventDefault();
+            }
+
+            theCanvas.onmouseup = function(e) {
+                mouse.down = false;
+                e.preventDefault();
+            }
+
+            theCanvas.onmousedown = function(e) {
+                mouse.down = true;
+                e.preventDefault();
+            }
+
+            update();
+
+        }
+
+        drawScreen();
+    }
+    </script>
+</body>
+
+</html>

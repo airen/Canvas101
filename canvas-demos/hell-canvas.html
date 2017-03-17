@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Hello Canvas!</title>
+	<style type="text/css" media="screen">
+		* {
+			margin: 0;
+			padding: 0;
+		}
+		body {
+			background-color: #ddd;
+		}
+	</style>
+</head>
+<body>
+	<canvas id="canvasOne" width="500" height="300">
+		
+	</canvas>
+	<script>
+		window.addEventListener('load', eventWindowLoaded, false);
+
+		var Debugger = function () {};
+
+		Debugger.log = function (message) {
+			try {
+				console.log(message);
+			} catch (exception) {
+				return;
+			}
+		}
+
+		function eventWindowLoaded () {
+			canvasApp();
+		}
+
+		function canvasApp () {
+			
+			var theCanvas = document.getElementById('canvasOne');
+			var context = theCanvas.getContext('2d');
+
+			theCanvas.width = window.innerWidth;
+			theCanvas.height = window.innerHeight;
+
+			Debugger.log('Drawing Canvas');
+
+			function drawScreen() {
+
+				context.font = '140px Arial';
+				context.fillStyle = 'cornflowerblue';
+				context.strokeStyle = 'blue';
+				context.fillText('Hello Canvas', theCanvas.width / 2 - 350, theCanvas.height / 2 + 15);
+				context.strokeText('Hello Canvas', theCanvas.width / 2 - 350, theCanvas.height / 2 + 15);
+
+
+			}
+
+			drawScreen();
+		}
+	</script>
+</body>
+</html>

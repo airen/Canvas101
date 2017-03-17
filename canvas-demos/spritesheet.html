@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Sprite Sheet!</title>
+    <style type="text/css" media="screen">
+    body {
+        background: #dddddd;
+    }
+    
+    #canvasOne {
+        position: absolute;
+        left: 0px;
+        top: 20px;
+        margin: 20px;
+        background: #ffffff;
+        border: thin inset rgba(100, 150, 230, 0.5);
+        cursor: pointer;
+    }
+    
+    #readout {
+        margin-top: 10px;
+        margin-left: 15px;
+        color: blue;
+    }
+    </style>
+</head>
+
+<body>
+    <div id="readout"></div>
+    <canvas id="canvasOne" width="500" height="300">
+    </canvas>
+    <script>
+    window.addEventListener('load', eventWindowLoaded, false);
+
+    var Debugger = function() {};
+
+    Debugger.log = function(message) {
+        try {
+            console.log(message);
+        } catch (exception) {
+            return;
+        }
+    }
+
+    function eventWindowLoaded() {
+        canvasApp();
+    }
+
+    function canvasApp() {
+
+        var theCanvas = document.getElementById('canvasOne');
+        var context = theCanvas.getContext('2d');
+
+        Debugger.log('Drawing Canvas');
+
+        var readOut = document.getElementById('readout');
+        var spriteSheet = new Image();
+
+        // Function
+        function windowToCanvas(canvas, x, y) {
+            var box = canvas.getBoundingClientRect();
+            return {
+                x: x - box.left * (canvas.width / box.width),
+                y: y - box.top * (canvas.height / box.height)
+            }
+        }
+
+        function drawBackground() {
+            var verticalLineSpacing = 12,
+                i = theCanvas.height;
+
+            context.clearRect(0, 0, theCanvas.width, theCanvas.height);
+            context.strokeStyle = 'lightgray';
+            context.lineWidth = 0.5;
+
+            while (i > verticalLineSpacing * 4) {
+                context.beginPath();
+                context.moveTo(0, i);
+                context.lineTo(theCanvas.width, i);
+                context.stroke();
+                i -= verticalLineSpacing;
+            }
+        }
+
+        function drawSpriteSheet() {
+        	context.drawImage(spriteSheet, 0, 0);
+        }
+
+        function drawGuideLines (x, y) {
+        	context.strokeStyle = 'rgba(0, 0, 230, 0.8)';
+        	context.lineWidth = 0.5;
+        	drawVerticalLine(x);
+        	drawHorizontalLine(y);
+        }
+
+        function drawHorizontalLine (y) {
+        	context.beginPath();
+        	context.moveTo(0, y + 0.5);
+        	context.lineTo(theCanvas.width, y + 0.5);
+        	context.stroke();
+        }
+
+        function drawVerticalLine (x) {
+        	context.beginPath();
+        	context.moveTo(x + 0.5, 0);
+        	context.lineTo(x + 0.5, theCanvas.height);
+        	context.stroke();
+        }
+
+        function updateReadOut (x, y) {
+        	readOut.innerHTML = '(' + x.toFixed(0) + ',' + y.toFixed(0) + ')';
+        }
+
+        function drawScreen() {
+
+        	theCanvas.onmousemove = function (e) {
+        		var loc = windowToCanvas(theCanvas, e.clientX, e.clientY);
+        		drawBackground();
+        		drawSpriteSheet();
+        		drawGuideLines(loc.x, loc.y);
+        		updateReadOut(loc.x, loc.y);
+        	}
+
+            drawBackground();
+            spriteSheet.src = './images/running-sprite-sheet.png';
+
+            spriteSheet.onload = function (e) {
+            	drawSpriteSheet();
+            }
+
+
+        }
+
+        drawScreen();
+    }
+    </script>
+</body>
+
+</html>

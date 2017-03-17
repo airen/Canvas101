@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Dotted Lines</title>
+    <style type="text/css" media="screen">
+    canvas {
+        border: 1px solid #ccc;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+    }
+    </style>
+</head>
+
+<body>
+    <canvas id="canvasOne" width="500" height="300">
+    </canvas>
+    <script>
+    window.addEventListener('load', eventWindowLoaded, false);
+
+    var Debugger = function() {};
+
+    Debugger.log = function(message) {
+        try {
+            console.log(message);
+        } catch (exception) {
+            return;
+        }
+    }
+
+    function eventWindowLoaded() {
+        canvasApp();
+    }
+
+    
+
+
+    function canvasApp() {
+
+        var theCanvas = document.getElementById('canvasOne');
+        var context = theCanvas.getContext('2d');
+
+        Debugger.log('Drawing Canvas');
+
+        var canvasPrototype = window.CanvasRenderingContext2D && CanvasRenderingContext2D.prototype;
+        canvasPrototype.dottedLine = function (x1,y1, x2, y2, interval) {
+            if (!interval) {
+                interval = 5;
+            }
+
+            var isHorizontal = true;
+
+            if (x1 == x2) {
+                isHorizontal = false;
+            }
+
+            var len = isHorizontal ? x2 - x1 : y2 - y1;
+
+            this.moveTo(x1, y1);
+
+            var progress = 0;
+
+            while (len > progress) {
+                progress += interval;
+
+                if (progress > len) {
+                    progress = len;
+                }
+
+                if (isHorizontal) {
+                    this.moveTo(x1 + progress, y1);
+                    this.arc(x1 + progress, y1, 1, 0, Math.PI * 2, true);
+                    this.fill();
+                } else {
+                    this.moveTo(x1, y1 + progress);
+                    this.arc(x1, y1 + progress, 1, 0, Math.PI * 2, true);
+                    this.fill();
+                }
+            }
+        }
+
+        function drawScreen() {
+
+
+            context.fillStyle = 'red';
+            context.lineWidth = 4;
+
+            context.dottedLine(10, 100, 200, 200, 10);
+            context.dottedLine(10, 100, 10, 200, 10);
+            context.dottedLine(200, 100, 200, 200, 10);
+            context.dottedLine(10, 200, 200, 200, 10);
+
+            // context.lineWidth = 2;
+            // context.strokeStyle = 'green';
+
+            // context.beginPath();
+            // context.moveTo(150, 10);
+            // context.lineTo(200, 10);
+            // context.lineTo(200, 100);
+            // context.lineTo(150, 100);
+            // context.closePath();
+            // context.stroke();
+
+            // context.beginPath();
+            // context.moveTo(150,10);
+            // context.lineTo(200, 100);
+            // context.stroke();
+
+        }
+
+        drawScreen();
+    }
+    </script>
+</body>
+
+</html>

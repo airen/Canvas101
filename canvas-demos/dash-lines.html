@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Dashed Lines</title>
+    <style type="text/css" media="screen">
+    canvas {
+        border: 1px solid #ccc;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+    }
+    </style>
+</head>
+
+<body>
+    <canvas id="canvasOne" width="500" height="300">
+    </canvas>
+    <script>
+    window.addEventListener('load', eventWindowLoaded, false);
+
+    var Debugger = function() {};
+
+    Debugger.log = function(message) {
+        try {
+            console.log(message);
+        } catch (exception) {
+            return;
+        }
+    }
+
+    function eventWindowLoaded() {
+        canvasApp();
+    }
+
+    
+
+
+    function canvasApp() {
+
+        var theCanvas = document.getElementById('canvasOne');
+        var context = theCanvas.getContext('2d');
+
+        Debugger.log('Drawing Canvas');
+
+        // CanvasRenderingContext2D.prototype.dashedLine = function(x1, y1, x2, y2, dashLen) {
+        //     if (dashLen == undefined) dashLen = 2;
+
+        //     this.beginPath();
+        //     this.moveTo(x1, y1);
+
+        //     var dX = x2 - x1;
+        //     var dY = y2 - y1;
+        //     var dashes = Math.floor(Math.sqrt(dX * dX + dY * dY) / dashLen);
+        //     var dashX = dX / dashes;
+        //     var dashY = dY / dashes;
+
+        //     var q = 0;
+        //     while (q++ < dashes) {
+        //         x1 += dashX;
+        //         y1 += dashY;
+        //         this[q % 2 == 0 ? 'moveTo' : 'lineTo'](x1, y1);
+        //     }
+        //     this[q % 2 == 0 ? 'moveTo' : 'lineTo'](x2, y2);
+
+        //     this.stroke();
+        //     this.closePath();
+        // };
+        
+
+        function drawScreen() {
+
+
+            context.lineWidth = 4;
+
+
+            context.beginPath();
+            context.setLineDash([40,5,60]);
+            context.strokeStyle = '#f36';
+            context.moveTo(100, 50);
+            context.lineTo(100, 300);
+            context.stroke();
+
+           
+
+
+
+        }
+
+        drawScreen();
+    }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Linear Gradients</title>
+	<style type="text/css" media="screen">
+		* {
+			margin: 0;
+			padding: 0;
+		}
+		canvas {
+			background-color: #eee;
+			border: thin solid cornflowerblue;
+		}
+	</style>
+
+</head>
+<body>
+	<canvas id="canvasOne" width="500" height="500">
+		
+	</canvas>
+	<script>
+		window.addEventListener('load', eventWindowLoaded, false);
+
+		var Debugger = function () {};
+
+		Debugger.log = function (message) {
+			try {
+				console.log(message);
+			} catch (exception) {
+				return;
+			}
+		}
+
+		function eventWindowLoaded () {
+			canvasApp();
+		}
+
+		function canvasApp () {
+			
+			var theCanvas = document.getElementById('canvasOne');
+			var context = theCanvas.getContext('2d');
+
+			Debugger.log('Drawing Canvas');
+
+			function drawScreen() {
+
+				var gradient = context.createLinearGradient(0, 0, 0, theCanvas.height / 2);
+
+				gradient.addColorStop(0, 'blue');
+				gradient.addColorStop(.25, 'white');
+				gradient.addColorStop(.75, 'purple');
+				gradient.addColorStop(1, 'yellow');
+
+				context.lineWidth = 30;
+
+				context.fillStyle = gradient;
+				context.strokeStyle = gradient;
+
+				context.fillRect(10, 10, 200, 200);
+				context.strokeRect(110, 240, 300, 200);
+
+			}
+
+			drawScreen();
+		}
+	</script>
+</body>
+</html>

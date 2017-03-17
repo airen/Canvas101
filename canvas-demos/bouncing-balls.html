@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Bouncing Balls!</title>
+    <style type="text/css" media="screen">
+    * {
+    	margin: 0;
+    	padding: 0;
+    }
+    body {
+        background: #dddddd;
+    }
+    
+    #canvasOne {
+        margin-left: 10px;
+        margin-top: 10px;
+        background: #ffffff;
+        border: thin solid #aaaaaa;
+    }
+    
+    #glasspane {
+        position: absolute;
+        left: 50px;
+        top: 50px;
+        padding: 0px 20px 10px 10px;
+        background: rgba(0, 0, 0, 0.3);
+        border: thin solid rgba(0, 0, 0, 0.6);
+        color: #eeeeee;
+        font-family: Droid Sans, Arial, Helvetica, sans-serif;
+        font-size: 12px;
+        cursor: pointer;
+        box-shadow: rgba(0, 0, 0, 0.5) 5px 5px 20px;
+    }
+    
+    #glasspane h2 {
+        font-weight: normal;
+    }
+    
+    #glasspane .title {
+        font-size: 2em;
+        color: rgba(255, 255, 0, 0.8);
+    }
+    
+    #glasspane a:hover {
+        color: yellow;
+    }
+    
+    #glasspane a {
+        text-decoration: none;
+        color: #cccccc;
+        font-size: 3.5em;
+    }
+    
+    #glasspane p {
+        margin: 10px;
+        color: rgba(65, 65, 220, 1.0);
+        font-size: 12pt;
+        font-family: Palatino, Arial, Helvetica, sans-serif;
+    }
+    </style>
+</head>
+
+<body>
+    <div id="glasspane">
+        <h2 class="title">Bouncing Balls</h2>
+        <p>One hundred balls bouncing</p>
+        <a id="startButton">Start</a>
+    </div>
+    <canvas id="canvasOne" width="750" height="500">
+    </canvas>
+    <script>
+    window.addEventListener('load', eventWindowLoaded, false);
+
+    var Debugger = function() {};
+
+    Debugger.log = function(message) {
+        try {
+            console.log(message);
+        } catch (exception) {
+            return;
+        }
+    }
+
+    function eventWindowLoaded() {
+        canvasApp();
+    }
+
+    function canvasApp() {
+        
+
+        var theCanvas = document.getElementById('canvasOne');
+        var context = theCanvas.getContext('2d');
+
+        Debugger.log('Drawing Canvas');
+
+        var startButton = document.getElementById('startButton'),
+        	glasspane = document.getElementById('glasspane'),
+        	paused = true,
+        	circles = [];
+
+        context.lineWidth = .5;
+        context.font = '32px Arial';
+
+        for (var i = 0; i < 100; ++i) {
+        	circles[i] = {
+        		x: 100,
+        		y: 100,
+        		velocityX: 3 * Math.random(),
+        		velocityY: 3 * Math.random(),
+        		radius: 50 * Math.random(),
+        		color: 'rgba(' + (Math.random() * 255).toFixed(0) + ',' + (Math.random() * 255).toFixed(0) + ',' + (Math.random() * 255).toFixed(0) + ', 1.0)'
+        	}
+        }
+
+        startButton.addEventListener('click', function(e) {
+        	e.preventDefault();
+        	e.stopPropagation();
+        	paused = ! paused;
+        	startButton.innerText = paused ? 'Start' : 'Stop';
+        });
+
+        glasspane.addEventListener('mousedown', function(e) {
+        	e.preventDefault();
+        	e.stopPropagation();
+        });
+
+        theCanvas.addEventListener('mousedown', function(e){
+        	e.preventDefault();
+        	e.stopPropagation();
+        });
+
+        setInterval(function() {
+        	if (!paused) {
+        		context.clearRect(0, 0, theCanvas.width, theCanvas.height);
+        		drawGrid(context, 'lightgray', 10, 10);
+        		circles.forEach(function (circle) {
+        			context.beginPath();
+        			context.arc(circle.x, circle.y, circle.radius, 0, Math.PI * 2, false);
+        			context.fillStyle = circle.color;
+        			context.fill();
+        			adjustPosition(circle);
+        		});
+        	}
+        }, 1000 / 60);
+
+        function adjustPosition (circle) {
+        	if (circle.x + circle.velocityX + circle.radius > theCanvas.width || circle.x + circle.velocityX - circle.radius < 0) {
+        		circle.velocityX = -circle.velocityX;
+        	}
+
+        	if (circle.y + circle.velocityY + circle.radius > theCanvas.height || circle.y + circle.velocityY - circle.radius < 0) {
+        		circle.velocityY = -circle.velocityY;
+        	}
+
+        	circle.x += circle.velocityX;
+        	circle.y += circle.velocityY;
+        }
+
+        function drawGrid(context, color, stepX, stepY) {
+        	context.strokeStyle = color;
+        	context.lineWidth = .5;
+
+        	for (var i = stepX + 0.5; i < theCanvas.width; i += stepX) {
+        		context.beginPath();
+        		context.moveTo(i, 0);
+        		context.lineTo(i, theCanvas.height);
+        		context.stroke();
+        	}
+
+        	for (var i = stepY + 0.5; i < theCanvas.height; i += stepY) {
+        		context.beginPath();
+        		context.moveTo(0, i);
+        		context.lineTo(theCanvas.width, i);
+        		context.stroke();
+        	}
+        }
+        
+
+        drawGrid(context, 'lightgray', 10, 10);
+    }
+    </script>
+</body>
+
+</html>

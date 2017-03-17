@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Drawing with text</title>
+</head>
+
+<body>
+    <canvas id="canvasOne" width="500" height="300">
+    </canvas>
+    <script>
+    window.addEventListener('load', eventWindowLoaded, false);
+
+    var Debugger = function() {};
+
+    Debugger.log = function(message) {
+        try {
+            console.log(message);
+        } catch (exception) {
+            return;
+        }
+    }
+
+    function eventWindowLoaded() {
+        canvasApp();
+    }
+
+    function canvasApp() {
+        // if (!canvasSupport()){
+        // 	return;
+        // }
+
+        var theCanvas = document.getElementById('canvasOne');
+        var context = theCanvas.getContext('2d');
+
+        Debugger.log('Drawing Canvas');
+
+        // Application variables
+
+        var position = {
+            x: 0,
+            y: window.innerHeight / 2
+        };
+        var counter = 0;
+        var minFontSize = 3;
+        var angleDistortion = 0;
+        var letters = "W3cplus是一个致力于推广国内前端行业的技术博客。它以探索为己任，不断活跃在行业技术最前沿，努力提供高质量前端技术博文；其文章范围广泛，主要以CSS3、HTML5、Sass、Mobile和各类DEMO为主。";
+
+        // Drawing variables
+        var mouse = {
+            x: 0,
+            y: 0,
+            down: false
+        };
+
+        theCanvas.width = window.innerWidth;
+        theCanvas.height = window.innerHeight;
+
+        theCanvas.addEventListener('mousemove', mouseMove, false);
+        theCanvas.addEventListener('mousedown', mouseDown, false);
+        theCanvas.addEventListener('mouseup', mouseUp, false);
+        theCanvas.addEventListener('dblclick', doubleClick, false);
+
+        window.onresize = function(event) {
+            theCanvas.width = window.innerWidth;
+            theCanvas.height = window.innerHeight;
+        }
+
+        function mouseMove(event) {
+            mouse.x = event.pageX;
+            mouse.y = event.pageY;
+            drawScreen();
+        }
+
+        function mouseDown (event) {
+        	mouse.down = true;
+        	position.x = event.pageX;
+        	position.y = event.pageY;
+        }
+
+        function mouseUp (event) {
+        	mouse.down = false;
+        }
+
+        function doubleClick (event) {
+        	theCanvas.width = theCanvas.width;
+        }
+
+        function distance (pt, pt2) {
+        	var xs = 0;
+        	var ys = 0;
+
+        	xs = pt2.x - pt.x;
+        	xs = xs * xs;
+
+        	ys = pt2.y - pt.y;
+        	ys = ys * ys;
+
+        	return Math.sqrt(xs + ys);
+        }
+
+        function textWidth (string, size) {
+        	context.font = size + 'px Georgia';
+
+        	if (context.fillText) {
+        		return context.measureText(string).width;
+        	} else if (context.mozDrawText) {
+        		return context.mozMeasureText(string);
+        	}
+        }
+
+        function drawScreen() {
+
+        	if (mouse.down) {
+        		var d = distance(position, mouse);
+        		var fontSize = minFontSize + d/2;
+        		var letter = letters[counter];
+        		var stepSize = textWidth(letter, fontSize);
+
+        		if (d > stepSize) {
+        			var angle = Math.atan2(mouse.y - position.y, mouse.x - position.x);
+        			context.font = fontSize + 'px Georgia';
+        			context.save();
+        			context.translate(position.x, position.y);
+        			context.rotate(angle);
+        			context.fillText(letter, 0, 0);
+        			context.restore();
+
+        			counter++;
+
+        			if (counter > letters.length - 1) {
+        				counter = 0;
+        			}
+
+        			position.x = position.x + Math.cos(angle) * stepSize;
+        			position.y = position.y + Math.sin(angle) * stepSize;
+
+
+        		}
+        	}
+
+
+        }
+
+        drawScreen();
+    }
+    </script>
+</body>
+
+</html>

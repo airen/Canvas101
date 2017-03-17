@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Hello World Animation!</title>
+</head>
+<body>
+	<canvas id="canvasOne" width="640" height="480">
+		
+	</canvas>
+	<script>
+		window.addEventListener('load', eventWindowLoaded, false);
+
+		var Debugger = function () {};
+
+		Debugger.log = function (message) {
+			try {
+				console.log(message);
+			} catch (exception) {
+				return;
+			}
+		}
+
+		function eventWindowLoaded () {
+			canvasApp();
+		}
+
+		function canvasApp () {
+			
+
+			var theCanvas = document.getElementById('canvasOne');
+			var context = theCanvas.getContext('2d');
+
+			Debugger.log('Drawing Canvas');
+
+			var alpha = 0,
+				fadeIn = true,
+				text = 'Hello World',
+				helloWorldImage = new Image();
+			
+			helloWorldImage.src = './images/html5bg.jpg';
+
+
+
+			function gameLoop () {
+				window.setTimeout(gameLoop, 20);
+
+				drawScreen();
+			}
+
+			function drawScreen() {
+
+				// 绘制背景
+				context.globalAlpha = 1;
+				context.fillStyle = '#000';
+				context.fillRect(0, 0, theCanvas.width, theCanvas.height);
+
+				// 绘制图像
+				context.globalAlpha = .25;
+				context.drawImage(helloWorldImage, 0, 0);
+
+				if (fadeIn) {
+					alpha += .01;
+					if (alpha >= 1) {
+						alpha = 1;
+						fadeIn = false;
+					}
+				} else {
+					alpha -= .01;
+					if (alpha < 0) {
+						alpha = 0;
+						fadeIn = true;
+					}
+				}
+
+				// 绘制文本
+				context.font = '72px Sans-Serif';
+				context.textBaseline = 'top';
+				context.globalAlpha = alpha;
+				context.fillStyle = '#fff';
+				context.fillText(text, 150, 200);
+
+			}
+
+			gameLoop();
+		}
+	</script>
+</body>
+</html>

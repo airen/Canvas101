@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Firework</title>
+    <style type="text/css" media="screen">
+    body{
+        padding: 0;
+        margin: 0;
+    }
+    
+    canvas {
+        display: block;
+    }
+    </style>
+</head>
+
+<body>
+    <canvas id="canvasOne" width="500" height="300">
+    </canvas>
+    <script>
+    window.addEventListener('load', eventWindowLoaded, false);
+
+    var Debugger = function() {};
+
+    Debugger.log = function(message) {
+        try {
+            console.log(message);
+        } catch (exception) {
+            return;
+        }
+    }
+
+    function eventWindowLoaded() {
+        canvasApp();
+    }
+
+    function canvasApp() {
+
+        var theCanvas = document.getElementById('canvasOne');
+        var context = theCanvas.getContext('2d');
+
+        Debugger.log('Drawing Canvas');
+
+        theCanvas.width = window.innerWidth;
+        theCanvas.height = window.innerHeight;
+
+        
+        context.fillStyle = '#000';
+        context.fillRect(0, 0, theCanvas.width, theCanvas.height);
+
+        // Objects
+        var listFire = [];
+        var listFirework = [];
+        var fireNumber = 10;
+        var center = {
+            x: theCanvas.width / 2,
+            y: theCanvas.height / 2
+        };
+        var range = 100;
+
+        for (var i = 0; i < fireNumber; i++) {
+            var fire = {
+                x: Math.random() * range / 2 - range / 4 + center.x,
+                y: Math.random() * range * 2 + theCanvas.height,
+                size: Math.random() + 0.5,
+                fill: '#fd1',
+                vx: Math.random() - 0.5,
+                vy: -(Math.random() + 4),
+                ax: Math.random() * 0.02 - 0.01,
+                far: Math.random() * range + (center.y - range)
+            };
+            fire.base = {
+                x: fire.x,
+                y: fire.y,
+                vx: fire.vx
+            };
+
+            listFire.push(fire);
+        }
+
+        window.onresize = function(event) {
+            theCanvas.width = window.innerWidth;
+            theCanvas.height = window.innerHeight;
+            context.fillStyle = '#000';
+            context.fillRect(0, 0, theCanvas.width, theCanvas.height);
+        }
+
+        window.requestAnimFrame = window.requestAnimationFrame || window.webkitRequestAnimationFrame || window.mozRequestAnimationFrame || window.oRequestAnimationFrame || window.msRequestAnimationFrame || function(callback) {
+            window.setTimeout(callback, 1000 / 60);
+        }
+
+        function randColor() {
+            var r = Math.floor(Math.random() * 256),
+                g = Math.floor(Math.random() * 256),
+                b = Math.floor(Math.random() * 256),
+                color = 'rgb($r,$g,$b)';
+
+            color = color.replace('$r', r);
+            color = color.replace('$g', g);
+            color = color.replace('$b', b);
+
+            return color;
+        }
+
+        function loop() {
+            requestAnimationFrame(loop);
+            update();
+            drawScreen();
+        }
+
+        function update() {
+            for (var i = 0; i < listFire.length; i++) {
+                var fire = listFire[i];
+
+                if (fire.y <= fire.far) {
+                    var color = randColor();
+
+                    for (var i = 0; i < fireNumber * 5; i++) {
+                        var firework = {
+                            x: fire.x,
+                            y: fire.y,
+                            size: Math.random() + 1.5,
+                            fill: color,
+                            vx: Math.random() * 5 - 2.5,
+                            vy: -(Math.random() * 5) + 1.5,
+                            ay: 0.05,
+                            alpha: 1,
+                            life: Math.round(Math.random() * range / 2) + range / 2
+                        };
+
+                        firework.base = {
+                            life: firework.life,
+                            size: firework.size
+                        };
+
+                        listFirework.push(firework);
+                    }
+
+                    // reset
+                    fire.y = fire.base.y;
+                    fire.x = fire.base.x;
+                    fire.vx = fire.base.vx;
+                    fire.ax = Math.random() * 0.02 - 0.01;
+                }
+                fire.x += fire.vx;
+                fire.y += fire.vy;
+                fire.vx += fire.ax;
+            }
+
+            for (var i = listFirework.length - 1; i >= 0; i--) {
+                var firework = listFirework[i];
+                if (firework) {
+                    firework.x += firework.vx;
+                    firework.y += firework.vy;
+                    firework.vy += firework.ay;
+                    firework.alpha = firework.life / firework.base.life;
+                    firework.size = firework.alpha * firework.base.size;
+                    firework.alpha = firework.alpha > 0.6 ? 1 : firework.alpha;
+
+                    firework.life--;
+
+                    if (firework.life <= 0) {
+                        listFirework.splice(i, 1);
+                    }
+                }
+            }
+        }
+
+        function drawScreen() {
+
+            context.globalCompositeOperation = 'source-over';
+            context.globalAlpha = 0.18;
+            context.fillStyle = '#000';
+            context.fillRect(0, 0, theCanvas.width, theCanvas.height);
+
+            context.globalCompositeOperation = 'screen';
+            context.globalAlpha = 1;
+
+            for (var i = 0; i < listFire.length; i++) {
+                var fire = listFire[i];
+                context.beginPath();
+                context.arc(fire.x, fire.y, fire.size, 0, Math.PI * 2);
+                context.closePath();
+                context.fillStyle = fire.fill;
+                context.fill();
+            }
+
+            for (var i = 0; i < listFirework.length; i++) {
+                var firework = listFirework[i];
+                context.globalAlpha = firework.alpha;
+                context.beginPath();
+                context.arc(firework.x, firework.y, firework.size, 0, Math.PI * 2);
+                context.closePath();
+                context.fillStyle = firework.fill;
+                context.fill();
+            }
+
+
+        }
+
+        // drawScreen();
+        loop();
+    }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Trail</title>
+    <style type="text/css" media="screen">
+    body {
+        background-color: #000000;
+        padding: 0;
+        margin: 0;
+        overflow: hidden;
+    }
+    </style>
+</head>
+
+<body>
+    <canvas id="canvasOne" width="500" height="300">
+    </canvas>
+    <script>
+    window.addEventListener('load', eventWindowLoaded, false);
+
+    var Debugger = function() {};
+
+    Debugger.log = function(message) {
+        try {
+            console.log(message);
+        } catch (exception) {
+            return;
+        }
+    }
+
+    function eventWindowLoaded() {
+        canvasApp();
+    }
+
+    function canvasApp() {
+
+        var theCanvas = document.getElementById('canvasOne');
+        var context = theCanvas.getContext('2d');
+
+        Debugger.log('Drawing Canvas');
+
+        var screenWidth = window.innerWidth,
+            screenHeight = window.innerHeight,
+            radius = 70,
+            radiusScale = 1,
+            radiusScaleMin = 1,
+            radiusScaleMax = 1.5,
+            quantity = 25,
+            particles,
+            mouseX = screenWidth * .5,
+            mouseY = screenHeight * .5,
+            mouseIsDown = false;
+
+        window.addEventListener('mousemove', documentMouseMoveHandler, false);
+        window.addEventListener('mousedown', documentMouseDownHandler, false);
+        window.addEventListener('mouseup', documentMouseUpHandler, false);
+        document.addEventListener('touchstart', documentTouchStartHandler, false);
+        document.addEventListener('touchmove', documentTouchMoveHandler, false);
+        window.addEventListener('resize', windowResizeHandler, false);
+
+
+        function createParticles() {
+            particles = [];
+
+            for (var i = 0; i < quantity; i++) {
+                var particle = {
+                    size: 1,
+                    position: {
+                        x: mouseX,
+                        y: mouseY
+                    },
+                    offset: {
+                        x: 0,
+                        y: 0
+                    },
+                    shift: {
+                        x: mouseX,
+                        y: mouseY
+                    },
+                    speed: 0.01 + Math.random() * 0.04,
+                    targetSize: 1,
+                    fillColor: '#' + (Math.random() * 0x404040 + 0xaaaaaa | 0).toString(16),
+                    orbit: radius * .5 + (radius * .5 * Math.random())
+                };
+                particles.push(particle);
+            }
+        }
+
+        function documentMouseMoveHandler(event) {
+            mouseX = event.clientX - (window.innerWidth - screenWidth) * .5;
+            mouseY = event.clientY - (window.innerHeight - screenHeight) * .5;
+        }
+
+        function documentMouseDownHandler(event) {
+            mouseIsDown = true;
+        }
+
+        function documentMouseUpHandler(event) {
+            mouseIsDown = false;
+        }
+
+        function documentTouchStartHandler(event) {
+            if (event.rouches.length == 1) {
+                event.preventDefault();
+
+                mouseX = event.touches[0].pageX - (window.innerWidth - screenWidth) * .5;
+                mouseY = event.touches[0].pageY - (window.innerHeight - screenHeight) * .5;
+            }
+        }
+
+        function documentTouchMoveHandler(event) {
+            if (event.touches.length == 1) {
+                event.preventDefault();
+
+                mouseX = event.touches[0].pageX - (window.innerWidth - screenWidth) * .5;
+                mouseY = event.touches[0].pageY - (window.innerHeight - screenHeight) * .5;
+            }
+        }
+
+        function windowResizeHandler() {
+            screenWidth = window.innerWidth;
+            screenHeight = window.innerHeight;
+
+            theCanvas.width = screenWidth;
+            theCanvas.height = screenHeight;
+        }
+
+        function drawScreen() {
+
+            if (mouseIsDown) {
+                radiusScale += (radiusScaleMax - radiusScale) * 0.02;
+            } else {
+                radiusScale -= (radiusScale - radiusScaleMin) * 0.02;
+            }
+
+            radiusScale = Math.min(radiusScale, radiusScaleMax);
+
+            context.fillStyle = 'rgba(0,0,0,0.05)';
+            context.fillRect(0, 0, theCanvas.width, theCanvas.height);
+            for (i = 0, len = particles.length; i < len; i++) {
+                var particle = particles[i];
+                var lp = {
+                    x: particle.position.x,
+                    y: particle.position.y
+                };
+
+                // Rotation
+                particle.offset.x += particle.speed;
+                particle.offset.y += particle.speed;
+
+                // Follow mouse with some lag
+                particle.shift.x += (mouseX - particle.shift.x) * particle.speed;
+                particle.shift.y += (mouseY - particle.shift.y) * particle.speed;
+
+                // Apply position
+                particle.position.x = particle.shift.x + Math.cos(i + particle.offset.x) * (particle.orbit * radiusScale);
+                particle.position.y = particle.shift.y + Math.sin(i + particle.offset.y) * (particle.orbit * radiusScale);
+
+                // Limit to screen bounds
+                particle.position.x = Math.max(Math.min(particle.position.x, screenWidth), 0);
+                particle.position.y = Math.max(Math.min(particle.position.y, screenHeight), 0);
+
+                particle.size += (particle.targetSize - particle.size) * 0.05;
+
+                if (Math.round(particle.size) == Math.round(particle.targetSize)) {
+                    particle.targetSize = 1 + Math.random() * 7;
+                }
+
+                context.beginPath();
+                context.fillStyle = particle.fillColor;
+                context.strokeStyle = particle.fillColor;
+                context.lineWidth = particle.size;
+                context.moveTo(lp.x, lp.y);
+                context.lineTo(particle.position.x, particle.position.y);
+                context.arc(particle.position.x, particle.position.y, particle.size / 2, 0, Math.PI * 2, true);
+                context.fill();
+            }
+
+        }
+
+        createParticles();
+        windowResizeHandler();
+        setInterval(drawScreen, 1000 / 60);
+
+        // drawScreen();
+    }
+    </script>
+</body>
+
+</html>

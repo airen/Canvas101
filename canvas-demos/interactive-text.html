@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Interactive Canvas Text</title>
+	<style type="text/css" media="screen">
+		* {
+			margin: 0;
+			padding: 0;
+		}
+	</style>
+</head>
+<body>
+	<canvas id="canvasOne" width="500" height="300">
+		
+	</canvas>
+	<script>
+		window.addEventListener('load', eventWindowLoaded, false);
+
+		var Debugger = function () {};
+
+		Debugger.log = function (message) {
+			try {
+				console.log(message);
+			} catch (exception) {
+				return;
+			}
+		}
+
+		function eventWindowLoaded () {
+			canvasApp();
+		}
+
+		function canvasApp () {
+			// if (!canvasSupport()){
+			// 	return;
+			// }
+
+			var theCanvas = document.getElementById('canvasOne');
+			var context = theCanvas.getContext('2d');
+
+			Debugger.log('Drawing Canvas');
+
+			var keyword = "W3CPLUS";
+			var denseness = 10;
+			var parts = [];
+			var mouse = {
+				x: -100,
+				y: -100
+			};
+			var mouseOnScreen = false;
+			var itercount = 0;
+			var itertot = 40;
+
+			theCanvas.width = window.innerWidth;
+			theCanvas.height = window.innerHeight;
+
+			theCanvas.addEventListener('mousemove', MouseMove, false);
+			theCanvas.addEventListener('mouseout', MouseOut, false);
+
+			drawScreen();
+
+			function drawScreen() {
+
+				context.fillStyle = '#000000';
+				context.font = '300px impact';
+				context.fillText(keyword, 85, 275);
+
+				getCoords();
+
+			}
+
+			function MouseMove (e){
+				if (e.layerX || e.layerX == 0) {
+					mouseOnScreen = true;
+
+					mouse.x = e.layerX - theCanvas.offsetLeft;
+					mouse.y = e.layerY - theCanvas.offsetTop;
+				}
+			}
+
+			function MouseOut (e) {
+				mouseOnScreen = false;
+				mouse.x = -100;
+				mouse.y = -100;
+			}
+
+			function clear() {
+				context.fillStyle = '#333';
+				context.beginPath();
+				context.rect(0,0, theCanvas.width, theCanvas.height);
+				context.closePath();
+				context.fill();
+			}
+
+			function getCoords () {
+				var imageData,
+					pixel,
+					height,
+					width;
+
+				imageData = context.getImageData(0,0,theCanvas.width, theCanvas.height);
+
+				// Quickly iterate over all pixels
+				// Leaving density gaps
+				for (height = 0; height < theCanvas.height; height += denseness) {
+					for (width = 0; width < theCanvas.width; width += denseness) {
+						pixel = imageData.data[((width + (height * theCanvas.width)) * 4) - 1];
+
+						if (pixel == 255) {
+							drawCircle( width, height);
+						}
+					}
+				}
+
+				setInterval(update, 40);
+			}
+
+			function drawCircle (x, y) {
+				var startx = Math.random() * theCanvas.width;
+				var starty = Math.random() * theCanvas.height;
+
+				var velx = (x - startx) / itertot;
+				var vely = (y - starty) / itertot;
+
+				parts.push(
+						{
+							c: '#' + (Math.random() * 0x949494 + 0xaaaaaa | 0).toString(16),
+							x: x, // goal position
+							y: y,
+							x2: startx, //start position
+							y2: starty,
+							r: true, // Released (to fly free!)
+							v: {
+								x: velx,
+								y: vely
+							}
+						}
+					)
+			}
+
+			function update () {
+				var i, dx, dy, sqrDist, scale;
+				itercount++;
+				clear();
+
+				for (i = 0; i < parts.length; i++) {
+					// if the dot has been released
+					if (parts[i].r == true) {
+						// Fly into infinity!
+						parts[i].x2 += parts[i].v.x;
+						parts[i].y2 += parts[i].v.y;
+					}
+
+					if (itercount == itertot) {
+						parts[i].v = {
+							x: (Math.random() * 6) * 2 -6,
+							y: (Math.random() * 6) * 2 -6
+						};
+						parts[i].r = false;
+					}
+
+					// Look into using svg, so there is no mouse tracking
+					// Find distance from mouse/draw
+					dx = parts[i].x - mouse.x;
+					dy = parts[i].y - mouse.y;
+					sqrDist = Math.sqrt(dx * dx + dy * dy);
+
+					if (sqrDist < 20) {
+						parts[i].r = true;
+					}
+
+					// Draw the circle
+					context.fillStyle = parts[i].c;
+					context.beginPath();
+					context.arc(parts[i].x2, parts[i].y2, 4, 0, Math.PI * 2, true);
+					context.closePath();
+					context.fill();
+				}
+			}
+
+			
+
+			// drawScreen();
+		}
+	</script>
+</body>
+</html>

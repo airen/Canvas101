@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>lines</title>
+</head>
+<body>
+	<canvas id="canvasOne" width="500" height="300">
+		
+	</canvas>
+	<script>
+		window.addEventListener('load', eventWindowLoaded, false);
+
+		var Debugger = function () {};
+
+		Debugger.log = function (message) {
+			try {
+				console.log(message);
+			} catch (exception) {
+				return;
+			}
+		}
+
+		function eventWindowLoaded () {
+			canvasApp();
+		}
+
+		function canvasApp () {
+			
+			var theCanvas = document.getElementById('canvasOne');
+			var context = theCanvas.getContext('2d');
+
+			Debugger.log('Drawing Canvas');
+
+			function drawScreen() {
+
+				context.beginPath();
+				context.moveTo(40, 70);
+				context.lineTo(400, 200);
+				context.lineWidth = 10;
+				context.strokeStyle = '#fa4b2a';
+				context.stroke();
+
+			}
+
+			drawScreen();
+		}
+	</script>
+</body>
+</html>

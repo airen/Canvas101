@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Hello World!</title>
+</head>
+<body>
+	<canvas id="canvasOne" width="500" height="300">
+		
+	</canvas>
+	<script>
+		window.addEventListener('load', eventWindowLoaded, false);
+
+		var Debugger = function () {};
+
+		Debugger.log = function (message) {
+			try {
+				console.log(message);
+			} catch (exception) {
+				return;
+			}
+		}
+
+		function eventWindowLoaded () {
+			canvasApp();
+		}
+
+		function canvasApp () {
+			// if (!canvasSupport()){
+			// 	return;
+			// }
+
+			var theCanvas = document.getElementById('canvasOne');
+			var context = theCanvas.getContext('2d');
+
+			Debugger.log('Drawing Canvas');
+
+			function drawScreen() {
+
+				// 绘制画布背景
+				context.fillStyle = '#ffffaa';
+				context.fillRect(0, 0, 500, 300);
+
+				// 绘制文字
+				context.fillStyle = '#000000';
+				context.font = '20px Sans-Serif';
+				context.textBaseline = 'top';
+				context.fillText('Hello World!', 195, 80);
+
+				// 绘制图像
+				var logoImage = new Image();
+				logoImage.onload = function () {
+					context.drawImage(logoImage, 155, 110);
+				}
+				logoImage.src = '//www.w3cplus.com/sites/all/themes/w3cplusV2/images/logo.png';
+
+				// 绘制边框
+				context.strokeStyle = '#000000';
+				context.strokeRect(5, 5, 490, 290);
+
+			}
+
+			drawScreen();
+		}
+	</script>
+</body>
+</html>

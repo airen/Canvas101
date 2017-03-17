@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Colors and Transparency</title>
+    <style>
+    * {
+    	margin: 0;
+    	padding: 0;
+    }
+    body {
+        background: #dddddd;
+    }
+    
+    #canvasOne {
+        background: #eeeeee;
+        border: thin solid #aaaaaa;
+    }
+    </style>
+</head>
+
+<body>
+    <canvas id="canvasOne" width="600" height="400">
+    </canvas>
+    <script>
+    window.addEventListener('load', eventWindowLoaded, false);
+
+    var Debugger = function() {};
+
+    Debugger.log = function(message) {
+        try {
+            console.log(message);
+        } catch (exception) {
+            return;
+        }
+    }
+
+    function eventWindowLoaded() {
+        canvasApp();
+    }
+
+    function canvasApp() {
+        
+        var theCanvas = document.getElementById('canvasOne');
+        var context = theCanvas.getContext('2d');
+
+        Debugger.log('Drawing Canvas');
+
+        function drawScreen() {
+
+            context.lineJoin = 'round';
+            context.lineWidth = 3;
+
+            // 描边颜色
+            context.strokeStyle = 'goldenrod';
+            // 填充颜色
+            context.fillStyle = 'rgba(0,0,255,0.5)';
+
+            context.font = '50px Helvetica';
+            context.fillText('w3cplus', 100, 50);
+            context.strokeText('w3cplus', 100, 350);
+
+            
+
+            context.strokeRect(75, 100, 200, 200);
+            context.fillRect(325, 100, 200,200);
+
+        }
+
+        drawScreen();
+    }
+    </script>
+</body>
+
+</html>

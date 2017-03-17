@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>HTML5 Canvas Loader</title>
+    <style type="text/css">
+    body {
+        margin: 0;
+        padding: 0;
+        background: #272822;
+    }
+    
+    canvas {
+        position: absolute;
+        top: calc(50% - 50px);
+        top: -webkit-calc(50% - 100px);
+        left: calc(50% - 200px);
+        left: -webkit-calc(50% - 200px);
+    }
+    </style>
+</head>
+
+<body>
+    <canvas id="canvasOne" width="500" height="300">
+    </canvas>
+    <script>
+    window.addEventListener('load', eventWindowLoaded, false);
+
+    var Debugger = function() {};
+
+    Debugger.log = function(message) {
+        try {
+            console.log(message);
+        } catch (exception) {
+            return;
+        }
+    }
+
+    function eventWindowLoaded() {
+        canvasApp();
+    }
+
+    function canvasApp() {
+
+        var theCanvas = document.getElementById('canvasOne');
+        var context = theCanvas.getContext('2d');
+
+        Debugger.log('Drawing Canvas');
+
+        var particle_no = 25;
+
+        window.requestAnimFrame = (function() {
+            return window.requestAnimationFrame || window.webkitRequestAnimationFrame || window.mozRequestAnimationFrame || window.oRequestAnimationFrame || window.msRequestAnimationFrame || function(callback) {
+                window.setTimeout(callback, 1000 / 60);
+            }
+        })();
+
+        var counter = 0;
+        var particles = [];
+        var w = 400;
+        var h = 200;
+        theCanvas.width = w;
+        theCanvas.height = h;
+
+        function reset() {
+            context.fillStyle = '#272822';
+            context.fillRect(0, 0, w, h);
+
+            context.fillStyle = '#171814';
+            context.fillRect(25, 80, 350, 25);
+        }
+
+        function progressbar() {
+            this.widths = 0;
+            this.hue = 0;
+
+            this.drawScreen = function() {
+                context.fillStyle = 'hsla(' + this.hue + ',100%,40%,1)';
+                context.fillRect(25, 80, this.widths, 25);
+
+                var grad = context.createLinearGradient(0, 0, 0, 130);
+                grad.addColorStop(0, 'transparent');
+                grad.addColorStop(1, 'rgba(0,0,0,0.5)');
+
+                context.fillStyle = grad;
+                context.fillRect(25, 80, this.widths, 25);
+            }
+        }
+
+        function particle () {
+        	this.x = 23 + bar.widths;
+        	this.y = 82;
+
+        	this.vx = 0.8 + Math.random() * 1;
+        	this.v = Math.random() * 5;
+        	this.g = 1 + Math.random() * 3;
+        	this.down = false;
+
+        	this.drawScreen = function () {
+        		context.fillStyle = 'hsla(' + (bar.hue + 0.3) + ', 100%, 40%, 1)';
+
+        		var size = Math.random() * 2;
+        		context.fillRect(this.x, this.y, size, size);
+        	}
+        }
+
+        bar = new progressbar();
+
+        function drawScreen() {
+
+            reset();
+
+            counter++;
+
+            bar.hue += 0.8;
+
+            bar.widths +=2;
+
+            if (bar.widths > 350) {
+            	if (counter > 215) {
+            		reset();
+            		bar.hue = 0;
+            		bar.widths = 0;
+            		counter = 0;
+            		particles = [];
+            	} else {
+            		bar.hue = 126;
+            		bar.widths = 351;
+            		bar.drawScreen();
+            	}
+            } else {
+            	bar.drawScreen();
+
+            	for (var i=0; i<particle_no; i += 10) {
+            		particles.push(new particle());
+            	}
+            }
+
+            update();
+
+        }
+
+        function update() {
+        	for (var i = 0; i < particles.length; i++) {
+        		var p = particles[i];
+        		p.x -= p.vx;
+
+        		if (p.down == true) {
+        			p.g += 0.1;
+        			p.y += p.g;
+        		} else {
+        			if (p.g < 0) {
+        				p.down = true;
+        				p.g += 0.1;
+        				p.y += p.g;
+        			} else {
+        				p.y -= p.g;
+        				p.g -= 0.1;
+        			}
+        		}
+        		p.drawScreen();
+        	}
+        }
+
+        function animloop () {
+        	drawScreen();
+        	requestAnimFrame(animloop);
+        }
+
+        animloop();
+    }
+    </script>
+</body>
+
+</html>

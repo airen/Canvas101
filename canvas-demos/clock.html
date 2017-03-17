@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Clock</title>
+	<style type="text/css" media="screen">
+		 * {
+		 	margin: 0;
+		 	padding: 0;
+		 }
+         body {
+            background: #dddddd;
+         }
+
+         #canvasOne {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate3d(-50%,-50%,0);
+            background: #ffffff;
+            border: thin solid #aaaaaa;
+         }
+      
+	</style>
+</head>
+<body>
+	<canvas id="canvasOne" width="400" height="400">
+		
+	</canvas>
+	<script>
+		window.addEventListener('load', eventWindowLoaded, false);
+
+		var Debugger = function () {};
+
+		Debugger.log = function (message) {
+			try {
+				console.log(message);
+			} catch (exception) {
+				return;
+			}
+		}
+
+		function eventWindowLoaded () {
+			canvasApp();
+		}
+
+		function canvasApp () {
+			
+			var canvas = document.getElementById('canvasOne');
+			var context = canvas.getContext('2d');
+			Debugger.log('Drawing Canvas');
+
+			var fontHeight = 15,
+				margin = 35,
+				handTruncation = canvas.width / 25,
+				hourHandTruncation = canvas.width / 10,
+				numeralSpacing = 20,
+				radius = canvas.width / 2 - margin,
+				handRadius = radius + numeralSpacing;
+
+			// 画圆
+			function drawCircle () {
+				context.beginPath();
+				context.arc(canvas.width / 2, canvas.height / 2, radius, 0, Math.PI * 2, true);
+				context.stroke();
+			}
+
+			// 画钟表上的数字
+			function drawNumerals () {
+				var numerals = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+					angle = 0,
+					numeralWidth = 0;
+
+				numerals.forEach(function (numeral){
+					angle = Math.PI / 6 * (numeral - 3);
+					numeralWidth = context.measureText(numeral).width;
+					context.fillText(numeral, canvas.width / 2 + Math.cos(angle) * handRadius - numeralWidth / 2, canvas.height / 2 + Math.sin(angle) * handRadius + fontHeight / 3);
+				});
+			}
+
+			// 画钟的圆心
+			function drawCenter () {
+				context.beginPath();
+				context.arc(canvas.width / 2, canvas.height / 2, 5, 0, Math.PI * 2, true);
+				context.fill();
+			}
+
+			function drawNumbers() {
+				var i = 60;
+				while(i > 0) {
+					context.save();
+					context.beginPath();
+					context.translate(canvas.width / 2, canvas.height / 2);
+					var angle = (i * 6) * Math.PI / 180;
+					context.rotate(angle);
+					context.translate(0, -canvas.width / 2.44);
+					context.moveTo(0,0);
+
+					if (i % 5 === 0) {
+						context.lineWidth = 4;
+						context.lineTo(0, 15);
+					} else {
+						context.lineWidth = 2;
+						context.lineTo(0, 7);
+					}
+
+					context.stroke();
+					context.closePath();
+					context.restore();
+					i--;
+				}
+			}
+
+			// 画表针
+			function drawHand(loc, isHour) {
+				var angle =( Math.PI * 2) * (loc / 60) - Math.PI / 2,
+					handRadius = isHour ? radius - handTruncation - hourHandTruncation : radius - handTruncation;
+				context.moveTo(canvas.width / 2, canvas.height / 2);
+				context.lineTo(canvas.width / 2 + Math.cos(angle) * handRadius, canvas.height / 2 + Math.sin(angle) * handRadius);
+				context.stroke();
+			}
+
+			function drawHands() {
+				var date = new Date,
+					hour = date.getHours();
+					hour = hour > 12 ? hour - 12 : hour;
+					drawHand(hour * 5 + (date.getMinutes() / 60) * 5, true, 0.5);
+					drawHand(date.getMinutes(), false, 0.5);
+					drawHand(date.getSeconds(), false, 0.2);
+			}
+
+			function drawClock() {
+				context.clearRect(0, 0, canvas.width, canvas.height);
+				drawCircle();
+				drawNumerals();
+				drawNumbers();
+				drawCenter();
+				drawHands();
+			}
+
+			function drawScreen() {
+
+				context.font = fontHeight + 'px Arial';
+				loop = setInterval(drawClock, 1000);
+
+
+			}
+
+			drawScreen();
+		}
+	</script>
+</body>
+</html>
