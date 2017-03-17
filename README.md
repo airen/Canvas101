@@ -1,5 +1,5 @@
 # Canvas101
-Learning Cavnas series
+Learning Canvas series
 
 ## Canvas Tutorials
 
