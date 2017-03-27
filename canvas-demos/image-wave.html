@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Wave</title>
+    <style type="text/css" media="screen">
+    body {
+        width: 100vw;
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    
+    canvas {
+        border: 1px solid rgba(0, 0, 0, .4);
+        box-shadow: 0 0 3px rgba(0, 0, 0, .15);
+        border-radius: 5px;
+    }
+    </style>
+</head>
+
+<body>
+    <canvas id="canvasOne" width="500" height="300">
+    </canvas>
+    <script>
+    window.addEventListener('load', eventWindowLoaded, false);
+
+    var Debugger = function() {};
+
+    Debugger.log = function(message) {
+        try {
+            console.log(message);
+        } catch (exception) {
+            return;
+        }
+    }
+
+    function eventWindowLoaded() {
+        canvasApp();
+    }
+
+    function canvasApp() {
+
+        var theCanvas = document.getElementById('canvasOne');
+        var ctx = theCanvas.getContext('2d');
+
+        Debugger.log('Drawing Canvas');
+
+        window.requestAnimFrame = window.requestAnimationFrame || window.webkitRequestAnimationFrame || window.mozRequestAnimationFrame || window.oRequestAnimationFrame || window.msRequestAnimationFrame || function(callback) {
+            window.setTimeout(callback, 1000 / 60);
+        }
+
+        var waveWidth = 700,
+            offset = 0,
+            waveHeight = 8,
+            waveCount = 5,
+            startX = -150,
+            startY = 308,
+            progress = 0,
+            progressStep = 1,
+            d2 = waveWidth / waveCount,
+            d = d2 / 2,
+            hd = d / 2,
+            img = new Image();
+
+        ctx.fillStyle = '#4bf6ee';
+
+
+        function drawScreen() {
+
+            offset -= 5;
+            progress += progressStep;
+
+            if (progress > 220 || progress < 0) {
+                progressStep *= -1;
+            }
+
+            if (-1 * offset === d2) {
+                offset = 0;
+            }
+
+            ctx.clearRect(0, 0, theCanvas.width, theCanvas.height);
+            ctx.beginPath();
+
+            var offsetY = startY - progress;
+            ctx.moveTo(startX - offset, offsetY);
+
+            for (var i = 0; i < waveCount; i++) {
+                var dx = i * d2;
+                var offsetX = dx + startX - offset;
+
+                ctx.quadraticCurveTo(offsetX + hd, offsetY + waveHeight, offsetX + d, offsetY);
+                ctx.quadraticCurveTo(offsetX + hd + d, offsetY - waveHeight, offsetX + d2, offsetY);
+            }
+
+            ctx.lineTo(startX + waveWidth, 600);
+            ctx.lineTo(startX, 600);
+            ctx.fill();
+
+            ctx.globalCompositeOperation = 'destination-atop';
+            ctx.drawImage(img, (theCanvas.width - img.width) / 2, (theCanvas.height - img.height) / 2);
+
+            requestAnimFrame(drawScreen);
+
+        }
+
+        img.onload = function() {
+            drawScreen();
+        }
+
+        img.src = './images/alloy.png';
+    }
+    </script>
+</body>
+
+</html>

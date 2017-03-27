@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Canvas Quadratic Curve</title>
+    <style type="text/css">
+    html,
+    body {
+        width: 100vw;
+        height: 100vh;
+        margin: 0;
+        padding: 0;
+    }
+    
+    body {
+        display: flex;
+        justify-content: flex-start;
+    }
+    
+    .wrapper {
+        margin: 10px;
+    }
+    .wrapper:nth-child(1){
+    	width: 500px;
+    }
+    .wrapper:nth-child(2) {
+    	flex: 1;
+    }
+    pre {
+        display: block;
+        padding: 0.5em;
+        background: #002b36;
+        color: #839496;
+        min-height: 11rem;
+    }
+    
+    canvas {
+        border: 1px solid rgba(0, 0, 0, .4);
+        box-shadow: 0 0 3px rgba(0, 0, 0, .15);
+        border-radius: 5px;
+    }
+    </style>
+</head>
+
+<body>
+    <div class="wrapper">
+    	<h1>Canvas Quadratic Curve</h1>
+        <canvas id="canvasOne" width="500" height="500" class="quadratic"></canvas>
+    </div>
+    <div class="wrapper">
+    	<h1>Get Code:</h1>
+        <pre id="code">code</pre>
+        <p>This demonstration shows how quadratic curves can be drawn on a canvas element. Drag the line ends or the control point to change the curve.</p>
+    </div>
+    <script>
+    window.addEventListener('load', eventWindowLoaded, false);
+
+    var Debugger = function() {};
+
+    Debugger.log = function(message) {
+        try {
+            console.log(message);
+        } catch (exception) {
+            return;
+        }
+    }
+
+    function eventWindowLoaded() {
+        canvasApp();
+    }
+
+    function canvasApp() {
+        
+        var theCanvas = document.getElementById('canvasOne');
+        var ctx = theCanvas.getContext('2d');
+
+        Debugger.log('Drawing Canvas');
+
+        var code = document.getElementById('code'),
+        	point,
+        	style,
+        	drag = null,
+        	dPoint;
+
+        // define initial points
+        function init(quadratic) {
+        	point = {
+        		p1: {
+        			x: 100,
+        			y: 250
+        		},
+        		p2: {
+        			x: 400,
+        			y: 250
+        		}
+        	};
+
+        	if (quadratic) {
+        		point.cp1 = {
+        			x: 250,
+        			y: 100
+        		}
+        	} else {
+        		point.cp1 = {
+        			x: 150,
+        			y: 100
+        		}
+        		point.cp2 = {
+        			x: 350,
+        			y: 100
+        		}
+        	};
+
+        	// default styles
+        	style = {
+        		curve: {
+        			width: 6,
+        			color: '#333'
+        		},
+        		cpline: {
+        			width: 1,
+        			color: '#c00'
+        		},
+        		point: {
+        			radius: 10,
+        			width: 2,
+        			color: '#900',
+        			fill: 'rgba(200, 200, 200, .5)',
+        			arc1: 0,
+        			arc2: 2 * Math.PI
+        		}
+        	};
+
+        	// line style defaults
+        	ctx.lineCap = 'round';
+        	ctx.lineJoin = 'round';
+
+        	//event handles
+        	theCanvas.addEventListener('mousedown', dragStart, false);
+        	theCanvas.addEventListener('mousemove', dragging, false);
+        	theCanvas.addEventListener('mouseup', dragEnd, false);
+        	theCanvas.addEventListener('mouseout', dragEnd, false);
+
+        	drawScreen();
+        }
+
+        // draw screen
+        function drawScreen() {
+        	ctx.clearRect(0, 0, theCanvas.width, theCanvas.height);
+
+        	
+        	// control lines
+        	ctx.lineWidth = style.cpline.width;
+        	ctx.strokeStyle = style.cpline.color;
+
+        	ctx.beginPath();
+        	ctx.moveTo(point.p1.x, point.p1.y);
+        	ctx.lineTo(point.cp1.x, point.cp1.y);
+
+        	if (point.cp2) {
+        		ctx.moveTo(point.p2.x, point.p2.y);
+        		ctx.lineTo(point.cp2.x, point.cp2.y);
+        	} else {
+        		ctx.lineTo(point.p2.x, point.p2.y);
+        	}
+        	ctx.stroke();
+
+        	// curve
+        	ctx.lineWidth = style.curve.width;
+        	ctx.strokeStyle = style.curve.color;
+
+        	ctx.beginPath();
+        	ctx.moveTo(point.p1.x, point.p1.y);
+        	if (point.cp2) {
+        		ctx.bezierCurveTo(point.cp1.x, point.cp1.y, point.cp2.x, point.cp2.y, point.p2.x, point.p2.y);
+        	} else {
+        		ctx.quadraticCurveTo(point.cp1.x, point.cp1.y, point.p2.x, point.p2.y);
+        	}
+        	ctx.stroke();
+
+        	// control points
+        	for (var p in point) {
+        		ctx.lineWidth = style.point.width;
+        		ctx.strokeStyle = style.point.color;
+        		ctx.fillStyle = style.point.fill;
+        		ctx.beginPath();
+        		ctx.arc(point[p].x, point[p].y, style.point.radius, style.point.arc1, style.point.arc2, true);
+        		ctx.fill();
+        		ctx.stroke();
+        	}
+
+        	showCode();
+        }
+
+        function showCode() {
+        	
+        	if (code) {
+
+        		console.dir(code);
+
+				code.firstChild.nodeValue = 
+					"theCanvas = document.getElementById(\"canvasOne\");\n"+
+					"ctx = theCanvas.getContext(\"2d\")\n"+
+					"ctx.lineWidth = " + style.curve.width +
+					";\nctx.strokeStyle = \"" + style.curve.color +
+					"\";\nctx.beginPath();\n" +
+					"ctx.moveTo(" + point.p1.x + ", " + point.p1.y +");\n" +
+					(point.cp2 ? 
+						"ctx.bezierCurveTo("+point.cp1.x+", "+point.cp1.y+", "+point.cp2.x+", "+point.cp2.y+", "+point.p2.x+", "+point.p2.y+");" :
+						"ctx.quadraticCurveTo("+point.cp1.x+", "+point.cp1.y+", "+point.p2.x+", "+point.p2.y+");"
+					) +
+					"\nctx.stroke();"
+				;
+			}
+        }
+
+        // event parser
+        function MousePos(event) {
+        	event = event ? event : window.event;
+
+        	return {
+        		x: event.pageX - theCanvas.offsetLeft,
+        		y: event.pageY - theCanvas.offsetTop
+        	}
+        }
+
+        // start dragging
+        function dragStart(e) {
+        	e = MousePos(e);
+        	var dx, dy;
+        	for (var p in point) {
+        		dx = point[p].x - e.x;
+        		dy = point[p].y - e.y;
+
+        		if ((dx * dx) + (dy * dy) < style.point.radius * style.point.radius) {
+        			drag = p;
+        			dPoint = e;
+        			theCanvas.style.cursor = 'move';
+        			return;
+        		}
+        	}
+        }
+
+        function dragging(e){
+        	if(drag){
+        		e = MousePos(e);
+        		point[drag].x += e.x - dPoint.x;
+        		point[drag].y += e.y - dPoint.y;
+        		dPoint = e;
+        		drawScreen();
+        	}
+        }
+
+        function dragEnd(e) {
+        	drag = null;
+        	theCanvas.style.cursor = 'default';
+        	drawScreen();
+        }
+        // drawScreen();
+        init(theCanvas.className == "quadratic");
+    }
+    </script>
+</body>
+
+</html>

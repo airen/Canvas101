@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Quadratic Bézier Curve Animation</title>
+    <style type="text/css" media="screen">
+    html,
+    body {
+        margin: 0;
+        padding: 0;
+        height: 100vh;
+        width: 100vw;
+    }
+    
+    body {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        align-content: center;
+    }
+    
+    .wrapper {
+        text-align: center;
+    }
+    
+    small {
+        font-size: 16px;
+        margin-left: 20px;
+    }
+    
+    p * {
+        vertical-align: middle;
+        margin-left: 5px;
+    }
+    
+    .wrapper div {
+        position: relative;
+        box-shadow: 0 0 0 1px hsl(0, 0%, 80%);
+        width: 600px;
+        height: 300px;
+    }
+    
+    canvas {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+    }
+    </style>
+</head>
+
+<body>
+    <div class="wrapper">
+        <h1>Understanding Quadratic Bézier Curve</h1>
+        <div id="canvasBox">
+            <canvas id="curve" width="600" height="300" style="z-index: 4;"></canvas>
+            <canvas id="animation" width="600" height="300" style="z-index: 3;"></canvas>
+            <canvas id="points" width="600" height="300" style="z-index: 2;"></canvas>
+            <canvas id="grid" width="600" height="300" style="z-index: 1;"></canvas>
+        </div>
+        <p>t = <span id="bezier-t">0</span></p>
+    </div>
+    <script>
+    window.addEventListener('load', eventWindowLoaded, false);
+
+    var Debugger = function() {};
+
+    Debugger.log = function(message) {
+        try {
+            console.log(message);
+        } catch (exception) {
+            return;
+        }
+    }
+
+    function eventWindowLoaded() {
+        canvasApp();
+    }
+
+    function canvasApp() {
+        Debugger.log('Drawing Canvas');
+
+        var p1x = 20,
+            p1y = 200,
+            cx = 140,
+            cy = 20,
+            p2x = 280,
+            p2y = 280,
+            tBox = document.getElementById('bezier-t'),
+            gridCanvas = document.getElementById('grid'),
+            gridCtx = gridCanvas.getContext('2d'),
+            pointsCanvas = document.getElementById('points'),
+            positsCtx = pointsCanvas.getContext('2d'),
+            animationCanvas = document.getElementById('animation'),
+            animationCtx = animationCanvas.getContext('2d'),
+            curveCanvas = document.getElementById('curve'),
+            curveCtx = curveCanvas.getContext('2d'),
+
+            w = gridCanvas.width,
+            h = gridCanvas.height,
+            t = 0,
+            d = 1; // direction
+
+        curveCtx.strokeStyle = '#777';
+        curveCtx.lineWidth = 2;
+        curveCtx.beginPath();
+        curveCtx.moveTo(p1x, p1y);
+        curveCtx.stroke();
+
+        function drawGrid(ctx, steps, color, width) {
+            ctx.save();
+            ctx.strokeStyle = color;
+            ctx.lineWidth = width;
+
+            for (var i = 0.5; i < h; i += steps) {
+                ctx.beginPath();
+                ctx.moveTo(0, i);
+                ctx.lineTo(w, i);
+                ctx.stroke();
+            }
+
+            for (var i = 0.5; i < w; i += steps) {
+                ctx.beginPath();
+                ctx.moveTo(i, 0);
+                ctx.lineTo(i, h);
+                ctx.stroke();
+                ctx.closePath();
+            }
+            ctx.restore();
+        }
+
+        function drawPoint(ctx, x, y, radius, color) {
+            ctx.save();
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.arc(x, y, radius, 2 * Math.PI, false);
+            ctx.fill();
+            ctx.closePath();
+            ctx.restore();
+        }
+
+        function drawSetup(ctx) {
+            ctx.save();
+
+            // lines between p1, c and p2
+            ctx.strokeStyle = '#ddd';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+
+            ctx.moveTo(p1x, p1y);
+            ctx.lineTo(cx, cy);
+            ctx.lineTo(p2x, p2y);
+            ctx.stroke();
+            ctx.closePath();
+
+            // quadratic Bézier curve
+            ctx.beginPath();
+            ctx.strokeStyle = '#999';
+            ctx.lineWidth = 1;
+            ctx.moveTo(p1x, p1y);
+            ctx.quadraticCurveTo(cx, cy, p2x, p2y);
+            ctx.stroke();
+            ctx.restore();
+
+            // Circles marking p1, c and p2
+            drawPoint(ctx, p1x, p1y, 5, '#00f');
+            drawPoint(ctx, cx, cy, 5, '#f00');
+            drawPoint(ctx, p2x, p2y, 5, '#00f');
+
+            ctx.fillText('P1', p1x + 10, p1y + 10);
+            ctx.fillText('C', cx + 10, cy + 10);
+            ctx.fillText('P2', p2x - 20, p2y + 10);
+        }
+
+        function drawAnimation(ctx) {
+            if (t > 1 || t < 0) {
+                d *= -1; // change direction
+                ctx.clearRect(0, 0, w, h);
+                ctx.beginPath();
+            }
+
+            t += 0.01 * d; // continue move
+            tBox.innerHTML = Math.round(t * 100) / 100;
+
+            var c1x = p1x + (cx - p1x) * t,
+                c1y = p1y + (cy - p1y) * t,
+                c2x = cx + (p2x - cx) * t,
+                c2y = cy + (p2y - cy) * t,
+                tx = c1x + (c2x - c1x) * t,
+                ty = c1y + (c2y - c1y) * t;
+
+            ctx.save();
+            ctx.clearRect(0, 0, w, h);
+
+            // draw new line
+            ctx.beginPath();
+            ctx.strokeStyle = '#aaa';
+            ctx.lineWidth = 1;
+            ctx.moveTo(c1x, c1y);
+            ctx.lineTo(c2x, c2y);
+            ctx.stroke();
+
+            // draw points on lines
+            drawPoint(ctx, c1x, c1y, 2, '#0f0');
+            drawPoint(ctx, c2x, c2y, 2, '#0f0');
+
+            // draw point on curve
+            drawPoint(ctx, tx, ty, 3, '#f0f');
+            ctx.restore();
+
+            // draw the new Bezier curve segment
+            curveCtx.lineTo(tx, ty);
+            curveCtx.stroke();
+        }
+
+        
+
+        drawGrid(gridCtx, 10, '#ddd', 1);
+        drawSetup(positsCtx);
+
+        var timer = setInterval(function() {
+        	drawAnimation(animationCtx);
+        }, 1000/30);
+
+        timer;
+
+    }
+    </script>
+</body>
+
+</html>
