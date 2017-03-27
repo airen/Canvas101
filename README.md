@@ -11,6 +11,8 @@ Learning Canvas series
 - [Canvas学习：save()和restore()](https://www.w3cplus.com/canvas/canvas-states.html)
 - [Canvas学习：绘制矩形](https://www.w3cplus.com/canvas/drawing-rectangular.html)
 - [Canvas学习：绘制圆和圆弧](https://www.w3cplus.com/canvas/drawing-arc-and-circle.html)
+- [Canvas学习：绘制箭头](https://www.w3cplus.com/canvas/drawing-arrow.html)
+- [Canvas学习：贝塞尔曲线](https://www.w3cplus.com/canvas/drawing-curve.html)
 
 ## Canvas Demos
 
