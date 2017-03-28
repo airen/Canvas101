@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Draw Star Polygons</title>
+    <style type="text/css" media="screen">
+    body {
+        width: 100vw;
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    
+    canvas {
+        border: 1px solid rgba(0, 0, 0, .4);
+        box-shadow: 0 0 3px rgba(0, 0, 0, .15);
+        border-radius: 5px;
+    }
+    label,
+    input,
+    button,
+    select {
+        display: inline-block;
+        vertical-align: middle;
+    }
+    .wrapper div {
+        margin-bottom: 10px;
+    }
+    input[type="number"] {
+        border:1px solid #ccc;
+        border-radius: 3px;
+        padding: 3px 5px;
+        width: 50px;
+    }
+    input[type="number"]:focus {
+        outline: none 0;
+        border-color: #008fb5;
+        box-shadow: 0 0 3px #008fb5;
+    }
+    button {
+        border-radius: 3px;
+        border: none;
+        background: #008fb5;
+        color: #fff;
+        padding: 5px 10px;
+        cursor: pointer;
+        box-shadow: 0 1px 0 rgba(0,0,0,.1) ,0 1px 0 rgba(0,0,0,.1);
+    }
+    button:focus,
+    button:active {
+        outline: none 0;
+    }
+    </style>
+</head>
+
+<body>
+    <div class="wrapper">
+        <div>
+            <label for="num">边数:</label>
+            <input type="number" name="num" value="3" id="num">
+            <label for="radius">半径:</label>
+            <input type="number" name="radius" value="100" id="radius">
+            <label for="sideIn">内切:</label>
+            <input type="number" name="sideIn" value="0.38" id="sideIn">
+            <label for="alpha">Alpha:</label>
+            <input type="number" name="alpha" value="0" id="alpha">
+            <label for="style">style:</label>
+            <select name="style" id="style">
+                <option value="fill">fill</option>
+                <option value="stroke">stroke</option>
+            </select>
+            <label for="arcBox">外圆:</label>
+            <input type="checkbox" name="arcBox"  id="arcBox">
+            <button type="button" name="draw" id="draw">Draw</button>
+        </div>
+        <canvas id="canvasOne" width="700" height="300">
+        </canvas>
+    </div>
+    <script>
+    window.addEventListener('load', eventWindowLoaded, false);
+
+    var Debugger = function() {};
+
+    Debugger.log = function(message) {
+        try {
+            console.log(message);
+        } catch (exception) {
+            return;
+        }
+    }
+
+    function eventWindowLoaded() {
+        canvasApp();
+    }
+
+    function canvasApp() {
+        var theCanvas = document.getElementById('canvasOne');
+        var ctx = theCanvas.getContext('2d');
+
+        Debugger.log('Drawing Canvas');
+
+        var w = theCanvas.width,
+            h = theCanvas.height,
+            btn = document.getElementById('draw'),
+            radius = document.getElementById('radius'),
+            num = document.getElementById('num'),
+            arcBox = document.getElementById('arcBox'),
+            style = document.getElementById('style'),
+            alpha = document.getElementById('alpha'),
+            sideIndent = document.getElementById('sideIn'),
+            xCenter = w / 2,
+            yCenter = h / 2;
+
+
+        btn.addEventListener('click', getValue, false);
+
+        function getValue(){
+            var numVal = num.value,
+                rVal = radius.value,
+                arcBoolean = arcBox.checked,
+                styleVal = style.options[style.selectedIndex].value,
+                alphaVal = alpha.value,
+                sideIndentVal = sideIndent.value;
+
+            if (numVal < 3) {
+                alert("Please enter a number larger than 2!");
+                return;
+            }
+
+            if (rVal <= 0) {
+                alert("Please enter a number of radius larger than 0!");
+                return;
+            }
+
+            if (sideIndentVal < 0 || sideIndentVal > 1) {
+                alert("Please enter a number of sideIndent 0 ~ 1 !");
+                return;
+            }
+
+            ctx.clearRect(0, 0, w, h);
+
+            if (styleVal === 'fill') {
+                drawFillStarPolygon(ctx, xCenter, yCenter, rVal, numVal, sideIndentVal, alphaVal, arcBoolean);
+            }
+            if (styleVal === 'stroke') {
+                drawStrokeStarPolygon(ctx, xCenter, yCenter, rVal, numVal, sideIndentVal, alphaVal, arcBoolean);
+            }
+            
+        }
+
+        // @param {CanvasRenderingContext2D} ctx
+        // @param {Number} xCenter 中心坐标X点
+        // @param {Number} yCenter 中心坐标Y点
+        // @param {Number} radius 外圆半径
+        // @param {Number} sides 多边形边数
+        // @param {Number} sideIndent (0 ~ 1)
+        // @param {Number} alpha 角度 默认270度
+        // @param {Boolean} arc 是否显示外圆
+        function drawStarPolygons(ctx, xCenter, yCenter, radius, sides, sideIndent, alpha, arc) {
+            
+            var sideIndentRadius = radius * (sideIndent || 0.38);
+            var radAngle = alpha ? alpha * Math.PI / 180 : -Math.PI / 2;
+            var radAlpha = Math.PI * 2 / sides / 2;
+
+            ctx.save();
+            ctx.beginPath();
+
+            var xPos = xCenter + Math.cos(radAngle) * radius;
+            var yPos = yCenter + Math.sin(radAngle) * radius;
+
+            ctx.moveTo(xPos, yPos);
+
+            for (var i = 1; i <= sides * 2; i++) {
+                var rad = radAlpha * i + radAngle;
+                var len = (i % 2) ? sideIndentRadius : radius;
+                var xPos = xCenter + Math.cos(rad) * len;
+                var yPos = yCenter + Math.sin(rad) * len;
+
+                ctx.lineTo(xPos, yPos);
+
+            }
+
+            ctx.closePath();
+        }
+
+        // 绘制填充的多边形
+        // @param {CanvasRenderingContext2D} ctx
+        // @param {Number} xCenter 中心点X坐标点
+        // @param {Number} yCenter 中心点Y坐标点
+        // @param {Number} radius 外圆半径
+        // @param {Number} sides 多边形边数
+        // @param {Number} sideIndent (0 ~ 1)
+        // @param {Number} alpha 角度 默认270度
+        // @param {Boolean} arc 是否显示外圆
+        function drawFillStarPolygon(ctx, xCenter, yCenter, radius, sides, sideIndent, alpha, arc) {
+            drawStarPolygons(ctx, xCenter, yCenter, radius, sides, sideIndent, alpha, arc);
+            ctx.fill();
+
+            // 画外接圆
+            if (arc) {
+                ctx.beginPath();
+                ctx.arc(xCenter, yCenter, radius, 0, 2 * Math.PI, true);
+                ctx.arc(xCenter, yCenter, radius * sideIndent, 0, 2 * Math.PI, true);
+                ctx.stroke();
+            }
+        }
+
+        // 绘制描边的多边形
+        // @param {CanvasRenderingContext2D} ctx
+        // @param {Number} xCenter 中心点X坐标点
+        // @param {Number} yCenter 中心点Y坐标点
+        // @param {Number} radius 外圆半径
+        // @param {Number} sides 多边形边数
+        // @param {Number} sideIndent (0 ~ 1)
+        // @param {Number} alpha 角度 默认270度
+        // @param {Boolean} arc 是否显示外圆
+        function drawStrokeStarPolygon(ctx, xCenter, yCenter, radius, sides, sideIndent, alpha, arc) {
+            drawStarPolygons(ctx, xCenter, yCenter, radius, sides, sideIndent, alpha, arc);
+            ctx.stroke();
+
+            // 画外接圆
+            if (arc) {
+                ctx.beginPath();
+                ctx.arc(xCenter, yCenter, radius, 0, 2 * Math.PI, true);
+                ctx.arc(xCenter, yCenter, radius * sideIndent, 0, 2 * Math.PI, true);
+                ctx.stroke();
+            }
+        }
+
+
+
+        function drawScreen() {
+
+        	ctx.fillStyle = '#f36';
+            ctx.strokeStyle = '#df0';
+            
+
+        }
+
+        drawScreen();
+    }
+    </script>
+</body>
+
+</html>

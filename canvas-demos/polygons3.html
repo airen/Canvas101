@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Draw Polygons</title>
+    <style type="text/css" media="screen">
+    body {
+        width: 100vw;
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    
+    canvas {
+        border: 1px solid rgba(0, 0, 0, .4);
+        box-shadow: 0 0 3px rgba(0, 0, 0, .15);
+        border-radius: 5px;
+    }
+    label,
+    input,
+    button {
+        display: inline-block;
+        vertical-align: middle;
+    }
+    .wrapper div {
+        margin-bottom: 10px;
+    }
+    input[type="number"] {
+        border:1px solid #ccc;
+        border-radius: 3px;
+        padding: 3px 5px;
+        width: 50px;
+    }
+    input[type="number"]:focus {
+        outline: none 0;
+        border-color: #008fb5;
+        box-shadow: 0 0 3px #008fb5;
+    }
+    button {
+        border-radius: 3px;
+        border: none;
+        background: #008fb5;
+        color: #fff;
+        padding: 5px 10px;
+        cursor: pointer;
+        box-shadow: 0 1px 0 rgba(0,0,0,.1) ,0 1px 0 rgba(0,0,0,.1);
+    }
+    button:focus,
+    button:active {
+        outline: none 0;
+    }
+    </style>
+</head>
+
+<body>
+    <div class="wrapper">
+        <div>
+            <label for="num">边数：</label>
+            <input type="number" name="num" value="3" id="num">
+            <label for="radius">半径：</label>
+            <input type="number" name="radius" value="10" id="radius">
+            <label for="alpha">Alpha：</label>
+            <input type="number" name="alpha" value="0" id="alpha">
+            <label for="arcBox">外圆：</label>
+            <input type="checkbox" name="arcBox"  id="arcBox">
+            <button type="button" name="draw" id="draw">Draw</button>
+        </div>
+        <canvas id="canvasOne" width="500" height="300">
+        </canvas>
+    </div>
+    <script>
+    window.addEventListener('load', eventWindowLoaded, false);
+
+    var Debugger = function() {};
+
+    Debugger.log = function(message) {
+        try {
+            console.log(message);
+        } catch (exception) {
+            return;
+        }
+    }
+
+    function eventWindowLoaded() {
+        canvasApp();
+    }
+
+    function canvasApp() {
+        var theCanvas = document.getElementById('canvasOne');
+        var ctx = theCanvas.getContext('2d');
+
+        Debugger.log('Drawing Canvas');
+
+        var w = theCanvas.width,
+            h = theCanvas.height,
+            btn = document.getElementById('draw'),
+            radius = document.getElementById('radius'),
+            num = document.getElementById('num'),
+            arcBox = document.getElementById('arcBox'),
+            alpha = document.getElementById('alpha');
+
+
+        btn.addEventListener('click', getValue, false);
+
+        function getValue(){
+            var numVal = num.value,
+                rVal = radius.value,
+                arcBoolean = arcBox.checked,
+                alphaVal = alpha.value;
+
+            if (numVal < 3) {
+                alert("Please enter a number larger than 2!");
+                return;
+            }
+
+            if (rVal <= 0) {
+                alert("Please enter a number of radius larger than 0!");
+                return;
+            }
+
+            // ctx.clearRect(-w / 2, -h / 2, w, h);
+            drawPolygons(ctx, w / 2, h / 2,numVal, rVal, alphaVal, arcBoolean);
+        }
+
+        function drawPolygons(ctx,centerX, centerY, num, radius, alpha, arc) {
+            ctx.clearRect(0, 0, w, h);
+
+            ctx.save();
+
+            ctx.beginPath();
+
+            var xPos = centerX + radius * Math.cos(alpha * Math.PI / 180),
+                yPos = centerY + radius * Math.sin(alpha * Math.PI / 180);
+
+            ctx.moveTo(xPos, yPos);
+
+            for (var i = 1; i <= num; i++) {
+                angle = i * 2 * Math.PI / num  + alpha * Math.PI / 180;
+                xPos = centerX + Math.cos(angle) * radius;
+                yPos = centerY + Math.sin(angle) * radius;
+
+                ctx.lineTo(xPos, yPos);
+            }
+
+            ctx.closePath();
+
+            ctx.fill();
+            ctx.stroke();
+            
+            // 画外接圆
+            if (arc) {
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI, true);
+                ctx.stroke();
+            }
+        }
+
+
+
+        function drawScreen() {
+
+        	ctx.fillStyle = '#f36';
+            ctx.strokeStyle = '#f00';
+            // ctx.translate(w / 2, h /2);
+
+        }
+
+        drawScreen();
+    }
+    </script>
+</body>
+
+</html>

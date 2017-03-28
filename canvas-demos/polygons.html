@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Draw Polygons</title>
+    <style type="text/css" media="screen">
+    body {
+        width: 100vw;
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    
+    canvas {
+        border: 1px solid rgba(0, 0, 0, .4);
+        box-shadow: 0 0 3px rgba(0, 0, 0, .15);
+        border-radius: 5px;
+    }
+    </style>
+</head>
+
+<body>
+    <canvas id="canvasOne" width="500" height="300">
+    </canvas>
+    <script>
+    window.addEventListener('load', eventWindowLoaded, false);
+
+    var Debugger = function() {};
+
+    Debugger.log = function(message) {
+        try {
+            console.log(message);
+        } catch (exception) {
+            return;
+        }
+    }
+
+    function eventWindowLoaded() {
+        canvasApp();
+    }
+
+    function canvasApp() {
+        var theCanvas = document.getElementById('canvasOne');
+        var ctx = theCanvas.getContext('2d');
+
+        Debugger.log('Drawing Canvas');
+
+        function drawPolygons(ctx, x, y, n, r, fill, stroke) {
+        	var ang = Math.PI * 2 / n;
+
+        	ctx.save();
+
+        	//原点移到x, y处，即要画的多边形中心
+        	ctx.translate(x, y);
+        	// 距中心r距离处画点
+        	ctx.moveTo(0, -r);
+        	ctx.beginPath();
+
+        	for (var i = 0; i < n; i++) {
+        		ctx.rotate(ang); //旋转
+        		ctx.lineTo(0, -r); // 距中心r距离处连线
+        	}
+        	ctx.closePath();
+
+        	if (fill) {
+        		ctx.fill();
+        	}
+
+        	if (stroke) {
+        		ctx.stroke();
+        	}
+
+        	ctx.restore();
+
+        }
+
+        function drawScreen() {
+
+        	ctx.lineWidth = 2;
+        	ctx.fillStyle = '#f46';
+        	ctx.strokeStyle = '#f00';
+
+            // 绘制半径为50的三角形
+            drawPolygons(ctx, 100, 100, 3, 50, true, false);
+            // 绘制半径为50的四边形
+            drawPolygons(ctx, 250, 100, 4, 50, false, true);
+            // 绘制半径为50的五边形
+            drawPolygons(ctx, 400, 100, 5, 50, true, true);
+            // 绘制半径为50的六边形
+            drawPolygons(ctx, 100, 220, 6, 50, true, true);
+            // 绘制半径为50的八边形
+            drawPolygons(ctx, 250, 220, 8, 50, true, false);
+            // 绘制半径为50的12边形
+            drawPolygons(ctx, 400, 220, 12, 50, true, false);
+
+        }
+
+        drawScreen();
+    }
+    </script>
+</body>
+
+</html>
