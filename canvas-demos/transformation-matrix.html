@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>HTML5 Transformation Matrix</title>
+	<style type="text/css" media="screen">
+		* {
+			margin: 0;
+			padding: 0;
+			box-sizing: border-box;
+		}
+		html,body {
+			width: 100vw;
+			height: 100vh;
+		}
+		body {
+			padding: 1.5rem;
+			display: flex;
+			justify-content: center;
+			align-content: center;
+			background-color: #b6b7bc;
+			color:#696969;
+			font-family: "Helvetica Neue", "Lucida Grande", "Segoe UI", Arial, Helvetica, Verdana, sans-serif;
+		}
+
+		.wrapper {
+			background: #fff;
+			padding: 2rem;
+			border: 1px solid rgba(0,0,0,.5);
+			border-radius: 8px;
+			box-shadow: 0 0 2px rgba(0,0,0,.15);
+			display: grid;
+			grid-template-areas:
+				"header header header header"
+				"sidebarFirst main main sidebarSecond";
+			grid-gap: 1.2em;
+			align-items: start;
+  			align-content: start;
+		}
+		h1 {
+			grid-area: header;
+			text-align: center;
+			margin-bottom: .8rem;
+			font-variant: small-caps;
+			text-transform: none;
+		}
+		.sidebar-first {
+			grid-area: sidebarFirst;
+		}
+
+		.main {
+			grid-area: main;
+		}
+		.sidebar-second {
+			grid-area: sidebarSecond;
+			max-width: 340px;
+		}
+		ul,ol {
+			list-style: none outside none;
+		}
+		h3 {
+			font-weight: normal;
+			font-variant: small-caps;
+			font-size: 1rem;
+			text-transform: none;
+			margin-bottom: .8rem;
+		}
+		ul {
+			display: flex;
+			justify-content: space-between;
+			flex-wrap: wrap;
+			margin-bottom: 2rem;
+		}
+		ul li {
+			flex: 1 1 33.3%;
+			padding: .2rem;
+		}
+		ol li {
+			margin-bottom: 1rem;
+			font-size: .9rem;
+		}
+		form {
+			display: flex;
+			justify-content: flex-start;
+			flex-wrap: wrap;
+		}
+		form > div {
+			flex: 1 1 33.3333%;
+			padding: .5rem;
+		}
+		label, input[type="number"] {
+			display: inline-block;
+			vertical-align: middle;
+		}
+		label {
+			min-width: 20px;
+		}
+		input[type="number"] {
+			padding: 5px;
+			border: 1px solid #ccc;
+			width: 60px;
+			height: 30px;
+		}
+		input[readonly]{
+			opacity: .8;
+			cursor: no-drop;
+			background-color: #ccc;
+			color: #999;
+		}
+
+		.form-actions {
+			text-align: center;
+		}
+
+		button {
+			border-radius: 5px;
+			padding: 15px 25px;
+			font-size: 22px;
+			text-decoration: none;
+			margin: 20px;
+			color: #fff;
+			position: relative;
+			display: inline-block;
+			background-color: #55acee;
+  			box-shadow: 0px 5px 0px 0px #3C93D5;
+  			border: none 0;
+  			outline: none;
+		}
+		button:hover {
+			background-color: #6FC6FF;
+		}
+		button:active,
+		button:foucs {
+		  	transform: translate(0px, 5px);
+		  	box-shadow: 0px 1px 0px 0px;
+		  	outline: none 0;
+		}
+	</style>
+</head>
+<body>
+	<div class="wrapper">
+		<h1>HTML5 Transformation Demo</h1>
+		<div class="sidebar-first">
+			<h3>HTML5 Transformation Matrix</h3>
+			<ul>
+				<li>a</li>
+				<li>c</li>
+				<li>e</li>
+				<li>b</li>
+				<li>d</li>
+				<li>f</li>
+				<li>0</li>
+				<li>0</li>
+				<li>1</li>
+			</ul>
+			<ol>
+				<li><strong>a:</strong>scaleX</li>
+				<li><strong>b:</strong>skewY</li>
+				<li><strong>c:</strong>skewX</li>
+				<li><strong>d:</strong>scaleY</li>
+				<li><strong>e:</strong>translateX</li>
+				<li><strong>f:</strong>translateY</li>
+			</ol>
+		</div>
+		<div class="main">
+			<canvas id="canvas" width="400" height="400"></canvas>
+		</div>
+		<div class="sidebar-second">
+			<h3>Set values of different parameters from transform method</h3>
+			<form action="">
+				<div class="form-control">
+					<label for="scaleX">a</label>
+					<input type="number" name="scaleX" value="1" id="scaleX" step="0.5" />
+				</div>
+				<div class="form-control">
+					<label for="skewX">c</label>
+					<input type="number" name="skewX" value="0" id="skewX" step="0.5" />
+				</div>
+				<div class="form-control">
+					<label for="translateX">e</label>
+					<input type="number" name="translateX" value="0" id="translateX" step="5"/>
+				</div>
+				<div class="form-control">
+					<label for="skewY">b</label>
+					<input type="number" name="skewY" value="0" id="skewY" step="0.5" />
+				</div>
+				<div class="form-control">
+					<label for="scaleY">d</label>
+					<input type="number" name="scaleY" value="1" id="scaleY" step="0.5" />
+				</div>
+				<div class="form-control">
+					<label for="translateY">f</label>
+					<input type="number" name="translateY" value="0" id="translateY" step="5"/>
+				</div>
+				<div class="form-control">
+					<label for="num1">&nbsp;</label>
+					<input type="number" name="num1" value="0" readonly="true" />
+				</div>
+				<div class="form-control">
+					<label for="num2">&nbsp;</label>
+					<input type="number" name="num2" value="0" readonly="true" />
+				</div>
+				<div class="form-control">
+					<label for="num3">&nbsp;</label>
+					<input type="number" name="num3" value="1" readonly="true" />
+				</div>
+				<div class="form-actions">
+					<button id="setTransformButton" type="button">Set Transform</button>
+				</div>
+			</form>
+		</div>
+	</div>
+	
+	<script>
+		window.addEventListener('load', eventWindowLoaded, false);
+
+		var Debugger = function () {};
+
+		Debugger.log = function (message) {
+			try {
+				console.log(message);
+			} catch (exception) {
+				return;
+			}
+		}
+
+		function eventWindowLoaded () {
+			canvasApp();
+		}
+
+		function canvasApp () {
+			
+			// var theCanvas = document.getElementById('canvasOne');
+			// var context = theCanvas.getContext('2d');
+
+			// Debugger.log('Drawing Canvas');
+
+			if (typeof NetFour == 'undefined' || !NetFour) {
+				var NetFour = {};
+			}
+
+			NetFour.Canvas = function (elemId) {
+				this.elementId = elemId;
+				this.canvasElem = null;
+				this.width = 0;
+				this.height = 0;
+				this.drawingCtx = null;
+				this.initialize(elemId);
+			}
+
+			NetFour.Canvas.prototype = {
+				initialize: function (elemId) {
+					this.canvasElem = document.getElementById(elemId);
+					if (null != this.canvasElem) {
+						this.width = this.canvasElem.width;
+						this.height = this.canvasElem.height;
+						this.rectangle = new NetFour.Rectangle(new NetFour.Point(0, 0), this.width, this.height);
+						this.center = new NetFour.Point(this.width / 2, this.height / 2);
+						if (this.canvasElem.getContext) {
+							this.drawingCtx = this.canvasElem.getContext('2d');
+						}
+					}
+				},
+				hasCanvasSupport: function () {
+					return (null != this.drawingCtx);
+				}
+			}
+
+			NetFour.Size = function (width, height) {
+				this.width = width || 0;
+				this.height = height || 0;
+			}
+
+			NetFour.Shape = function(color, width) {
+				this.color = color || '#000';
+				this.width = width || 1;
+			}
+
+			NetFour.Point = function (x, y) {
+				this.x = x;
+				this.y = y;
+			}
+
+			NetFour.Point.prototype.distanceTo = function(pt) {
+				var dx = pt.x - this.x;
+				var dy = pt.y - this.y;
+				return Math.sqrt(Math.pow(dx, 2) - Math.pow(dy, 2));
+			}
+
+			NetFour.Line = function (x1, y1, x2, y2) {
+				this.x1 = x1 || 0;
+				this.y1 = y1 || 0;
+				this.x2 = x2 || 0;
+				this.y2 = y2 || 0;
+				this.attributes = {
+					width: 1,
+					color: '#000'
+				};
+				this.equation = {
+					m: 0,
+					b: 0
+				};
+				this.vertical = false;
+				this.horizontal = false;
+				this.getEquation();
+			}
+
+			NetFour.Line.prototype.getStart = function () {
+				return new NetFour.Point(this.x1, this.y1);
+			}
+
+			NetFour.Line.prototype.getEnd = function(){
+				return new NetFour.Point(this.x2, this.y2);
+			}
+
+			NetFour.Line.prototype.getLength = function () {
+				return getStart().distanceTo(getEnd());
+			}
+
+			NetFour.Line.prototype.getEquation = function () {
+				try {
+					this.vertical = this.x1 == this.x2;
+					this.horizontal = this.y1 == this.y2;
+
+					if (!this.vertical) {
+						var slope = (this.y2 - this.y1) / (this.x2 - this.x1);
+						var intercept = this.y2 - slope * this.x2;
+						this.equation = {
+							m: slope,
+							b: intercept
+						}
+					}
+				}
+				catch(err) {}
+				return this.equation;
+			}
+
+			NetFour.Line.prototype.IsPointOnLine = function (pt) {
+				var y = this.equation.m * pt.x + this.equation.b;
+				return y == pt.y;
+			}
+
+			NetFour.Circle = function (center, radius) {
+				this.center = center || new NetFour.Point(0, 0);
+				this.radius = radius || 0;
+			}
+
+			NetFour.Rectangle = function (leftTop, width, height) {
+				this.leftTop = leftTop || new NetFour.Point(0, 0);
+				this.width = width || 0;
+				this.height = height || 0;
+				this.leftBottom = new NetFour.Point(this.leftTop.x, this.leftTop.x + this.height);
+				this.rightTop = new NetFour.Point(this.leftTop.x + this.width, this.leftTop.y);
+				this.rightBottom = new NetFour.Point(this.leftTop.x + this.width, this.leftTop.y + this.height);
+			}
+
+			NetFour.Rectangle.prototype.containsPoint = function(pt) {
+				if (pt.x < this.leftTop.x || pt.x > this.rightTop.x) {
+					return false;
+				}
+
+				if (pt.y < this.leftTop.y || pt.y > this.leftBottom.y) {
+					return false
+				}
+
+				return true;
+			}
+
+			NetFour.Image = function(url, callback) {
+				this.imageUrl = url || '';
+				this.image = new Image();
+				if (callback) {
+					this.image.addEventListener('load', callback, false);
+				}
+				this.image.src = url;
+			}
+
+			NetFour.PaintAttributes = {
+				color: '#f2f',
+				width: 1,
+				thickness: 1,
+				opacity: 1,
+				gradient: null,
+				borderWidth: 0,
+				borderColor: '#00f',
+				fillColor: '#f0f',
+				lineType: 'solid',
+				dashSize: 3
+			}
+
+			NetFour.Graphics = function (canvas) {
+				this.canvas = canvas;
+				this.drawingCtx = null;
+				if (canvas) {
+					this.drawingCtx = canvas.drawingCtx;
+				}
+			}
+
+			NetFour.Graphics.prototype.drawGrid = function (cellSize, color, drawDiag) {
+				var x = 0;
+				var y = 0;
+				if (color) {
+					this.drawingCtx.strokeStyle = color;
+				}
+				do {
+					if (x > this.canvas.width) {
+						break;
+					}
+					this.drawingCtx.beginPath();
+					this.drawingCtx.moveTo(x, y);
+					this.drawingCtx.lineTo(x, this.canvas.height);
+					this.drawingCtx.stroke();
+					this.drawingCtx.closePath();
+					x += cellSize;
+				} while (true);
+
+				x = 0;
+				y = 0;
+				do {
+					if (y > this.canvas.height) {
+						break;
+					}
+					this.drawingCtx.beginPath();
+					this.drawingCtx.moveTo(x, y);
+					this.drawingCtx.lineTo(x + this.canvas.width, y);
+					this.drawingCtx.stroke();
+					this.drawingCtx.closePath();
+					y += cellSize;
+				} while (true);
+
+				x = 0;
+				y = 0;
+				if (drawDiag) {
+					this.drawingCtx.beginPath();
+					this.drawingCtx.moveTo(0, 0);
+					this.drawingCtx.lineTo(this.canvas.width, this.canvas.height);
+					this.drawingCtx.stroke();
+					this.drawingCtx.closePath();
+
+					this.drawingCtx.beginPath();
+					this.drawingCtx.moveTo(0, this.canvas.height);
+					this.drawingCtx.lineTo(this.canvas.width, 0);
+					this.drawingCtx.stroke();
+					this.drawingCtx.closePath();
+				}
+			}
+
+			NetFour.Graphics.prototype.drawAxis = function (origin, size, lineWidth, color) {
+				this.saveContext();
+
+				if (color) {
+					this.drawingCtx.strokeStyle = color;
+				}
+
+				if (lineWidth) {
+					this.drawingCtx.lineWidth = lineWidth;
+				}
+
+				this.drawingCtx.beginPath();
+				this.drawingCtx.moveTo(origin.x, origin.y);
+				this.drawingCtx.lineTo(origin.x + size, origin.y);
+				this.drawingCtx.stroke();
+				this.drawingCtx.closePath();
+
+				this.drawingCtx.beginPath();
+				this.drawingCtx.moveTo(origin.x, origin.y);
+				this.drawingCtx.lineTo(origin.x, origin.y + size);
+				this.drawingCtx.stroke();
+				this.drawingCtx.closePath();
+
+				this.restoreContext();
+			}
+
+			NetFour.Graphics.prototype.clearCanvas = function () {
+				this.drawingCtx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+			}
+
+			NetFour.Graphics.prototype.clearRectangle = function (rect) {
+				this.drawingCtx.clearRect(rect.leftTop.x, rect.leftTop.y, rect.width, rect.height);
+			}
+
+			NetFour.Graphics.prototype.closePath = function () {
+				this.drawingCtx.closePath();
+			}
+
+			NetFour.Graphics.prototype.saveContext = function () {
+				this.drawingCtx.save();
+			}
+
+			NetFour.Graphics.prototype.restoreContext = function () {
+				this.drawingCtx.restore();
+			}
+
+			// [a c e]
+			// [b d f]
+			// [0 0 1]
+			NetFour.Graphics.prototype.setIdentityTransform = function () {
+				this.drawingCtx.setTransform(1, 0, 0, 1, 0, 0);
+			}
+
+			NetFour.Graphics.prototype.applyTranslation = function (x, y) {
+				this.drawingCtx.translate(x, y);
+			}
+
+			NetFour.Graphics.prototype.applyRotation = function (deg) {
+				var rad = deg * Math.PI / 180;
+				this.drawingCtx.rotate(rad);
+			}
+
+			NetFour.Graphics.prototype.drawPoint = function (pt, newPath) {
+				this.drawCircle(pt, newPath);
+			}
+
+			NetFour.Graphics.prototype.drawCircle = function (center, radius, newPath, atributes) {
+				if (newPath && newPath == true) {
+					this.drawingCtx.beginPath()
+				}
+				this.drawingCtx.arc(center.x, center.y, radius, 0, Math.PI * 2, true);
+				this.drawingCtx.stroke();
+			}
+
+			NetFour.Graphics.prototype.drawArc = function (center, radius, startAngle, endAngle, newPath, attributes) {
+				if (newPath && newPath == true) {
+					this.drawingCtx.beginPath();
+				}
+				var radStart = startAngle * Math.PI / 180;
+				var radEnd = endAngle * Math.PI / 180;
+				if (attributes) {
+					if (attributes.color) {
+						this.drawingCtx.strokeStyle = attributes.color;
+					}
+				}
+				this.drawingCtx.arc(center.x, center.y, radius, radStart, radEnd);
+				this.drawingCtx.stroke();
+			}
+
+			NetFour.Graphics.prototype.drawDisc = function (center, radius, newPath, attributes) {
+				if (newPath && newPath == true) {
+					this.drawingCtx.beginPath();
+				}
+				this.drawingCtx.arc(center.x, center.y, radius, 0, Math.PI * 2, true);
+				if (atributes) {
+					if (attributes.borderWidth && attributes.borderWidth > 0) {
+						this.drawingCtx.lineWidth = attributes.borderWidth;
+						if (attributes.borderColor) {
+							this.drawingCtx.strokeStyle = attributes.borderColor;
+						}
+						this.drawingCtx.stroke();
+					}
+					if (attributes.fillColor) {
+						this.drawingCtx.fillStyle = attributes.fillColor;
+					}
+				}
+				this.drawingCtx.fill();
+			}
+
+			NetFour.Graphics.prototype
+			.drawImage = function (img, pt) {
+				this.drawingCtx.drawImage(img.image, pt,x, pt.y);
+			}
+
+			NetFour.Graphics.prototype.drawLine = function (line, newPath, attributes) {
+				if (attributes) {
+					if (attributes.color) {
+						this.drawingCtx.strokeStyle = attributes.color;
+					}
+					if (attributes.width) {
+						this.drawingCtx.lineWidth = attributes.width;
+					}
+				}
+				if (newPath) {
+					this.drawingCtx.beginPath();
+				}
+
+				var startPt = line.getStart();
+				var endPt = line.getEnd();
+				this.drawingCtx.moveTo(startPt.x, startPt.y);
+				this.drawingCtx.lineTo(endPt.x, endPt.y);
+				this.drawingCtx.stroke();
+			}
+
+			NetFour.Graphics.prototype.drawDashLine = function (line, newPath, attributes) {
+				var dashSize = 3;
+
+				if (attributes) {
+					if (attributes.color) {
+						this.drawingCtx.strokeStyle = attributes.color;
+					}
+					if (attributes.width) {
+						this.drawingCtx.lineWidth = attributes.width;
+					}
+					if (attributes.dashSize) {
+						dashSize = attributes.dashSize;
+					}
+				}
+				if (newPath) {
+					this.drawingCtx.beginPath();
+				}
+
+				var lineEq = line.getEquation();
+				var angle = Math.atan(lineEq.m);
+
+				var lineStart = line.getStart();
+				var lineEnd = line.getEnd();
+				var startPt = new NetFour.Point(lineStart.x, lineStart.y);
+				var endPt = new NetFour.Point(lineStart.x, lineStart.y);
+				var dashCount = 0;
+				var draw = true;
+				do {
+					if (!line.IsPointOnLine(startPt) || startPt.x > lineEnd.x) {
+						break;
+					}
+					endPt.x = startPt.x + dashSize * Math.cos(angle);
+					endPt.y = lineEq.m * endPt.x + lineEq.b;
+					if (dashCount == 0 || dashCount % 2 == 0) {
+						draw = true;
+					} else {
+						draw = (endPt.x >= lineEnd.x);
+					}
+					if (draw) {
+						this.drawingCtx.moveTo(startPt.x, startPt.y);
+						this.drawingCtx.lineTo(Math.min(endPt.x, lineEnd.x), Math.min(endPt.y, lineEnd.y));
+						this.drawingCtx.stroke();
+					}
+					dashCount++;
+					startPt.x = endPt.x;
+					startPt.y = endPt.y;
+					if (dashCount >= 1) {
+						// break;
+					}
+				} while (true);
+			}
+
+			var XFormDemo = function () {
+				this.canvas = null,
+				this.graphics = null,
+				this.leftTopX = 0;
+				this.leftTopY = 0;
+				this.centerX = 0;
+				this.centerY = 0;
+				this.xTrans = 0;
+				this.yTrans = 0;
+				this.rotation = 0;
+				this.moveOrigin = false;
+				this. rectWidth = 100;
+				this.rectHeight = 80;
+				this.axisOrigin = new NetFour.Point(0, 0);
+				this.a = 0;
+				this.b = 0;
+				this.c = 0;
+				this.d = 0;
+				this.e = 0;
+				this.f = 0;
+			}
+
+			
+
+			XFormDemo.prototype.readTransformValues = function () {
+				this.a = document.getElementById('scaleX').value;
+				this.b = document.getElementById('skewY').value;
+				this.c = document.getElementById('skewX').value;
+				this.d = document.getElementById('scaleY').value;
+				this.e = document.getElementById('translateX').value;
+				this.f = document.getElementById('translateY').value;
+			}
+
+			XFormDemo.prototype.paint = function () {
+				thisDemo.graphics.setIdentityTransform();
+				thisDemo.graphics.drawingCtx.fillStyle = '#eee';
+				thisDemo.graphics.drawingCtx.fillRect(0, 0, thisDemo.canvas.width, thisDemo.canvas.height);
+				thisDemo.graphics.drawGrid(20, '#337790', true);
+
+				thisDemo.graphics.setIdentityTransform();
+				thisDemo.graphics.applyTranslation(thisDemo.centerX, thisDemo.centerY);
+				thisDemo.graphics.drawingCtx.transform(thisDemo.a, thisDemo.b, thisDemo.c, thisDemo.d, thisDemo.e, thisDemo.f);
+				thisDemo.leftTopX = 0 - thisDemo.rectWidth / 2;
+				thisDemo.leftTopY = 0 - thisDemo.rectHeight / 2;
+
+				thisDemo.graphics.drawingCtx.fillStyle = '#1299ff';
+				thisDemo.graphics.drawingCtx.fillRect(thisDemo.leftTopX, thisDemo.leftTopY, thisDemo.rectWidth, thisDemo.rectHeight);
+			}
+
+			var thisDemo = new XFormDemo();
+
+			function initSetXFormCanvas (canvasId) {
+				thisDemo.canvas = new NetFour.Canvas(canvasId);
+				thisDemo.graphics = new NetFour.Graphics(thisDemo.canvas);
+				thisDemo.leftTopX = thisDemo.canvas.width - 45;
+				thisDemo.leftTopY = thisDemo.canvas.height - 15;
+				thisDemo.centerX = thisDemo.canvas.width / 2;
+				thisDemo.centerY = thisDemo.canvas.height / 2;
+				thisDemo.drawPoint = new NetFour.Point(thisDemo.leftTopX, thisDemo.leftTopY);
+				document.getElementById('setTransformButton').addEventListener('click', doSetTransform, false);
+				doSetTransform();
+			}
+
+			function doSetTransform(e) {
+				thisDemo.readTransformValues();
+				thisDemo.paint();
+				// e.preventDefault();
+				
+			}
+
+			initSetXFormCanvas('canvas');
+		}
+	</script>
+</body>
+</html>
