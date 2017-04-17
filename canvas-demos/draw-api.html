@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Draw Canvas API</title>
+</head>
+<body>
+	<canvas id="canvasOne" width="500" height="300">
+		
+	</canvas>
+	<script>
+		window.addEventListener('load', eventWindowLoaded, false);
+
+		var Debugger = function () {};
+
+		Debugger.log = function (message) {
+			try {
+				console.log(message);
+			} catch (exception) {
+				return;
+			}
+		}
+
+		function eventWindowLoaded () {
+			canvasApp();
+		}
+
+		function canvasApp () {
+			
+			Debugger.log('Drawing Canvas');
+
+			// 声明Canvas对象
+			var canvas;
+			// 声明context对象
+			function initDrawCanvas(canvas, ctx){
+				this.canvas = canvas;
+				this.ctx = ctx;
+			}
+
+			// 封装矩形
+			// 矩形包括： 填充矩形、边框矩形和清除矩形区域
+			// @param {Number} x - 矩形起点的x坐标
+			// @param {Number} y - 矩形起点的y坐标
+			// @param {Number} width - 矩形宽度
+			// @param {Number} height - 矩形高度
+			// @param {Boolean} isClear - 是否绘制清除画布的矩形区域； true则是绘制一个清除画布矩形区域, false就是绘制其他两种矩形
+			// @param {Boolean} isFill - 是否填充；true绘制填充矩形， false绘制边框矩形
+			// @param {String} color - 矩形颜色
+			function drawRect(x, y, width, height, isClear, isFill, color) {
+				// 为true表示绘制清除画布的矩形区域，那么传入的isFill，color值可以为任意值
+				if (isClear) {
+					ctx.clearRect(x, y, width, height);
+				} else {
+					if (isFill) {
+						ctx.fillStyle = color;
+						ctx.fillRect(x, y, width, height);
+					} else {
+						ctx.strokeStyle = color;
+						ctx.strokeRect(x, y, width, height);
+					}
+				}
+			}
+
+			// 绘制圆弧
+			// 分类：填充圆弧和边框圆弧
+			// @param {Number} x - 圆心x轴坐标
+			// @param {Number} y - 圆心y轴坐标
+			// @param {Number} radius - 圆弧的半径
+			// @param {Number} startAngle - 开始的弧度（开始角度），只接受弧度单位，需要将deg先转换为rad： rad = Math.PI * deg / 180
+			// @param {Number} endAngle - 结束的弧度（结束的角度）
+			// @param {Boolean} anticlockwise - 旋转方向；true为逆时针，false为顺时针
+			// @param {Boolean} isFill - 是否填充；true为填充，false为边框
+			// @param {Boolean} isOnlyArc - 是否仅绘制弧边，如果使用closePath()终点和起点会连接到一起，否则不会。true时不连接，false连接
+			// @param {String} color - 圆弧的颜色
+			function drawArc(x, y, radius, startAngle, endAngle, anticlockwise, isOnlyArc, isFill, color) {
+				if (isFill) {
+					ctx.fillStyle = color;
+					ctx.beginPath();
+					ctx.arc(x, y, radius, getAngle(startAngle), getAngle(endAngle), anticlockwise);
+					ctx.closePath();
+					ctx.fill();
+				} else {
+					ctx.strokeStyle = color;
+					ctx.beginPath();
+					ctx.arc(x, y, radius, getAngle(startAngle), getAngle(endAngle), anticlockwise);
+					if (isOnlyArc) {
+
+					} else {
+						ctx.closePath();
+					}
+					ctx.stroke();
+				}
+			} 
+
+			// 将角度转换为弧度
+			// @param {Number} deg - 角度值
+			function getAngle(deg) {
+				return Math.PI *  deg / 180;
+			}
+
+			// 绘制扇形
+			// @param {Number} x - 圆心x轴坐标
+			// @param {Number} y - 圆心y轴坐标
+			// @param {Number} radius - 圆半径
+			// @param {Number} startAngle - 开始弧度
+			// @param {Number} endAngle - 结束弧度
+			// @param {Number} anticlockwise - 旋转方向， true逆时针，false顺时针
+			// @param {Boolean} isFill - true为填充，false为边框
+			// @param {String} color - 扇形的颜色
+			function drawSector(x, y, radius, startAngle, endAngle, anticlockwise, isFill, color) {
+				ctx.beginPath();
+				ctx.moveTo(x, y);
+				ctx.arc(x, y, radius, getAngle(startAngle), getAngle(endAngle), false);
+				ctx.closePath();
+					
+				if (isFill) {
+					ctx.fillStyle = color;
+					ctx.fill();
+				} else {
+					ctx.strokeStyle = color;
+					ctx.stroke();
+				}
+			}
+
+			// 绘制圆角矩形
+			// @param {Number} x - 矩形左上角x轴坐标
+			// @param {Number} y - 矩形左上角y轴坐标
+			// @param {Number} width - 矩形的宽度
+			// @param {Number} height - 矩形的高度
+			// @param {Number} radius - 矩形圆角的半径
+			// @param {Boolean} isFill - 是否绘制填充，true填充，false边框
+			// @param {String} color - 矩形的颜色
+			function drawRoundedRect(x, y, width, height, radius, isFill, color) {
+				ctx.beginPath();
+				ctx.moveTo(x + radius, y);
+				ctx.arcTo(x + width, y, x + width, y + radius, radius);
+				ctx.arcTo(x + width, y + height, x + width - radius, y + height, radius);
+				ctx.arcTo(x, y + height, x, y + height - radius, radius);
+				ctx.arcTo(x, y, x + radius, y, radius);
+				ctx.closePath();
+					
+				if (isFill) {
+					ctx.fillStyle = color;
+					ctx.fill();
+				} else {
+					ctx.strokeStyle = color;
+					ctx.stroke();
+				}
+			}
+
+			// 绘制实线线段
+			// @param {Number} startX - 线段起点x轴坐标
+			// @param {Number} startY - 线段起点y轴坐标
+			// @param {Number} endX - 线段终点x轴坐标
+			// @param {Number} endY - 线段终点y轴坐标
+			// @param {Number} lineWidth - 线宽
+			// @param {String} color - 线颜色
+			function drawSolidLine(startX, startY, endX, endY, lineWidth, color){
+				ctx.strokeStyle = color;
+				ctx.lineWidth = lineWidth;
+				ctx.beginPath();
+				ctx.moveTo(startX, startY);
+				ctx.lineTo(endX, endY);
+				ctx.stroke();
+			}
+
+			// 绘制点划线
+			// @param {Number} startX - 线段起点x轴坐标
+			// @param {Number} startY - 线段起点y轴坐标
+			// @param {Number} endX - 线段终点x轴坐标
+			// @param {Number} endY - 线段终点y轴坐标
+			// @param {Array} setLineDash - 点划线间距
+			// @param {Number} lineWidth - 线宽
+			// @param {String} color - 线段颜色
+			function drawDashLine(startX, startY, endX, endY, setLineDash, lineWidth, color) {
+				ctx.save();
+				ctx.lineWidth = lineWidth;
+				ctx.strokeStyle = color;
+				ctx.beginPath();
+				ctx.setLineDash(setLineDash);				
+				ctx.moveTo(startX, startY);
+				ctx.lineTo(endX, endY);
+				ctx.closePath();
+				ctx.stroke();
+				ctx.restore();
+			} 
+
+			// 绘制圆点线 虚线
+			// @param {Number} startX - 线段起点x轴坐标
+			// @param {Number} startY - 线段起点y轴坐标
+			// @param {Number} endX - 线段终点x轴坐标
+			// @param {Number} endY - 线段终点y轴坐标
+			// @param {Number} interval - 间隔
+			// @param {Number} radius - 圆点半径
+			// @param {String} color - 线段颜色
+			function drawDottedLine(startX, startY, endX, endY, radius, interval, color) {
+				if (!interval) {
+					interval = 5;
+				}
+				var isHorizontal = true;
+				if (startX == endX) {
+					isHorizontal = false;
+				}
+
+				var len = isHorizontal ? endX - startX : endY - startY;
+
+				ctx.beginPath();
+				ctx.strokeStyle = color;
+				ctx.fillStyle = color;
+				ctx.moveTo(startX, startY);
+				var progress = 0;
+				while (len > progress) {
+					progress += interval;
+
+					if (progress > len) {
+						progress = len;
+					}
+
+					if (isHorizontal) {
+						ctx.moveTo(startX + progress, startY);
+						ctx.arc(startX + progress, startY, radius, 0, Math.PI * 2, true);
+						ctx.fill();
+					} else {
+						ctx.moveTo(startX, endX + progress);
+						ctx.arc(startX, startY + progress, radius, 0, Math.PI * 2, true);
+						ctx.fill();
+					}
+				}
+			}
+
+			// From: http://www.dbp-consulting.com/tutorials/canvas/CanvasArrow.html
+  			// Draw arrow head
+			function drawHead (x0, y0, x1, y1, x2, y2, style, color, width) {
+				if (typeof(x0) == 'string') {
+					x0 = parseInt(x0);
+				}
+				if (typeof(y0) == 'string') {
+					y0 = parseInt(y0);
+				}
+				if (typeof(x1) == 'string') {
+					x1 = parseInt(x1);
+				}
+				if (typeof(y1) == 'string') {
+					y1 = parseInt(y1);
+				}
+				if (typeof(x2) == 'string') {
+					x2 = parseInt(x2);
+				}
+				if (typeof(y2) == 'string') {
+					y2 = parseInt(y2);
+				}
+				
+				var radius = 3,
+					twoPI = 2 * Math.PI;
+				
+				ctx.save();
+				ctx.beginPath();
+				ctx.strokeStyle = color;
+				ctx.fillStyle = color;
+				ctx.lineWidth = width;
+				ctx.moveTo(x0, y0);
+				ctx.lineTo(x1, y1);
+				ctx.lineTo(x2, y2);
+				
+				switch (style) {
+					case 0:
+						var backdist = Math.sqrt(((x2 - x0) * (x2 - x0)) + ((y2 - y0) * (y2 - y0)));
+						ctx.arcTo(x1, y1, x0, y0, .55 * backdist);
+						ctx.fill();
+						break;
+					case 1:
+						ctx.beginPath();
+						ctx.moveTo(x0, y0);
+						ctx.lineTo(x1, y1);
+						ctx.lineTo(x2, y2);
+						ctx.lineTo(x0, y0);
+						ctx.fill();
+						break;
+					case 2:
+						ctx.stroke();
+						break;
+					case 3:
+						var cpx = (x0 + x1 + x2) / 3;
+						var cpy = (y0 + y1 + y2) / 3;
+						ctx.quadraticCurveTo(cpx, cpy, x0, y0);
+						ctx.fill();
+						break;
+					case 4:
+						var cp1x, cp1y, cp2x, cp2y, backdist;
+						var shiftamt = 5;
+						if (x2 == x0) {
+							backdist = y2 - y0;
+							cp1x = (x1 + x0) / 2;
+							cp2x = (x1 + x0) / 2;
+							cp1y = y1 + backdist / shiftamt;
+							cp2y = y1 - backdist / shiftamt;
+						} else {
+							backdist = Math.sqrt(((x2 - x0) * (x2 - x0)) + ((y2 - y0) * (y2 - y0)));
+							var xback = (x0 + x2) / 2;
+							var yback = (y0 + y2) / 2;
+							var xmid = (xback + x1) / 2;
+							var ymid = (yback + y1) / 2;
+							var m = (y2 - y0) / (x2 - x0);
+							var dx = (backdist / (2 * Math.sqrt(m * m + 1))) / shiftamt;
+							var dy = m * dx;
+							cp1x = xmid - dx;
+							cp1y = ymid - dy;
+							cp2x = xmid + dx;
+							cp2y = ymid + dy;
+						}
+						ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, x0, y0);
+						ctx.fill();
+						break;
+					}
+					ctx.restore();
+			}
+			
+  			// draw arrow
+			function drawArrow(x1, y1, x2, y2, style, which, angle, d, color, width) {
+				if (typeof(x1) == 'string') {
+					x1 = parseInt(x1);
+				}
+				if (typeof(y1) == 'string') {
+					y1 = parseInt(y1);
+				}
+				if (typeof(x2) == 'string') {
+					x2 = parseInt(x2);
+				}
+				if (typeof(y2) == 'string') {
+					y2 = parseInt(y2);
+				}
+				style = typeof(style) != 'undefined' ? style : 3;
+				which = typeof(which) != 'undefined' ? which : 1;
+				angle = typeof(angle) != 'undefined' ? angle : Math.PI / 9;
+				d = typeof(d) != 'undefined' ? d : 10;
+				color = typeof(color) != 'undefined' ? color : '#000';
+				width = typeof(width) != 'undefined' ? width : 1;
+				var toDrawHead = typeof(style) != 'function' ? drawHead : style;
+				var dist = Math.sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1));
+				var ratio = (dist - d / 3) / dist;
+				var tox, toy, fromx, fromy;
+				if (which & 1) {
+					tox = Math.round(x1 + (x2 - x1) * ratio);
+					toy = Math.round(y1 + (y2 - y1) * ratio);
+				} else {
+					tox = x2;
+					toy = y2;
+				}
+				
+				if (which & 2) {
+					fromx = x1 + (x2 - x1) * (1 - ratio);
+					fromy = y1 + (y2 - y1) * (1 - ratio);
+				} else {
+					fromx = x1;
+					fromy = y1;
+				}
+				
+				ctx.beginPath();
+				ctx.strokeStyle = color;
+				ctx.lineWidth = width;
+				ctx.moveTo(fromx, fromy);
+				ctx.lineTo(tox, toy);
+				ctx.stroke();
+				
+				var lineangle = Math.atan2(y2 - y1, x2 - x1);
+				var h = Math.abs(d / Math.cos(angle));
+				if (which & 1) {
+					var angle1 = lineangle + Math.PI + angle;
+					var topx = x2 + Math.cos(angle1) * h;
+					var topy = y2 + Math.sin(angle1) * h;
+					var angle2 = lineangle + Math.PI - angle;
+					var botx = x2 + Math.cos(angle2) * h;
+					var boty = y2 + Math.sin(angle2) * h;
+					toDrawHead(topx, topy, x2, y2, botx, boty, style, color, width);
+				}
+				
+				if (which & 2) {
+					var angle1 = lineangle + angle;
+					var topx = x1 + Math.cos(angle1) * h;
+					var topy = y1 + Math.sin(angle1) * h;
+					var angle2 = lineangle - angle;
+					var botx = x1 + Math.cos(angle2) * h;
+					var boty = y1 + Math.sin(angle2) * h;
+					toDrawHead(topx, topy, x1, y1, botx, boty, style, color, width);
+				}
+			}
+  
+			// draw arced arrow
+			function drawArcedArrow(x, y, r, startangle, endangle, anticlockwise, style, which, angle, d, color, width) {
+				style = typeof(style) != 'undefined' ? style : 3;
+				which = typeof(which) != 'undefined' ? which : 1;
+				angle = typeof(angle) != 'undefined' ? angle : Math.PI / 8;
+				d = typeof (d) != 'undefined' ? d : 10;
+				color = typeof(color) != 'undefined' ? color : '#000';
+				width = typeof(width) != 'undefined' ? width : 1;
+				
+				ctx.save();
+				ctx.beginPath();
+				ctx.lineWidth = width;
+				ctx.strokeStyle = color;
+				ctx.arc(x, y, r, startangle, endangle, anticlockwise);
+				ctx.stroke();
+				var sx, sy, lineangle, destx, desty;
+				ctx.strokeStyle = 'rgba(0,0,0,0)';
+				if (which & 1) {
+					sx = Math.cos(startangle) * r + x;
+					sy = Math.sin(startangle) * r + y;
+					lineangle = Math.atan2(x - sx, sy - y);
+					if (anticlockwise) {
+						destx = sx + 10 * Math.cos(lineangle);
+						desty = sy + 10 * Math.sin(lineangle);
+					} else {
+						destx = sx - 10 * Math.cos(lineangle);
+						desty = sy - 10 * Math.sin(lineangle);
+					}
+					drawArrow(sx, sy, destx, desty, style, 2, angle, d, color, width);
+				}
+				
+				if (which & 2) {
+					sx = Math.cos(endangle) * r + x;
+					sy = Math.sin(endangle) * r + y;
+					lineangle = Math.atan2(x - sx, sy - y);
+					if (anticlockwise) {
+						destx = sx - 10 * Math.cos(lineangle);
+						desty = sy - 10 * Math.sin(lineangle);
+					} else {
+						destx = sx + 10 * Math.cos(lineangle);
+						desty = sy + 10 * Math.sin(lineangle);
+					}
+					drawArrow(sx, sy, destx, desty, style, 2, angle, d, color, width);
+				}
+				ctx.restore();
+			}
+
+			// 绘制正多边形
+			// @param {Number} xCenter 中心坐标X点
+			// @param {Number} yCenter 中心坐标Y点
+			// @param {Number} radius 外圆半径
+			// @param {Number} sides 多边形边数
+			// @param {Number} sideIndent (0 ~ 1)
+			// @param {Number} alpha 角度 默认270度
+			// @param {Boolean} isFill true填充，false边框
+			// @param {String} color 正多边形颜色 
+			function drawStarPolygons(xCenter, yCenter, radius, sides, sideIndent, alpha, isFill, color) {
+				
+				var sideIndentRadius = radius * (sideIndent || 0.38);
+				var radAngle = alpha ? alpha * Math.PI / 180 : -Math.PI / 2;
+				var radAlpha = Math.PI * 2 / sides / 2;
+
+				ctx.save();
+				ctx.beginPath();
+
+				var xPos = xCenter + Math.cos(radAngle) * radius;
+				var yPos = yCenter + Math.sin(radAngle) * radius;
+
+				ctx.moveTo(xPos, yPos);
+
+				for (var i = 1; i <= sides * 2; i++) {
+					var rad = radAlpha * i + radAngle;
+					var len = (i % 2) ? sideIndentRadius : radius;
+					var xPos = xCenter + Math.cos(rad) * len;
+					var yPos = yCenter + Math.sin(rad) * len;
+
+					ctx.lineTo(xPos, yPos);
+
+				}
+
+				ctx.closePath();
+
+				if (isFill) {
+					ctx.fillStyle = color;
+					ctx.fill();
+				} else {
+					ctx.strokeStyle = color;
+					ctx.stroke();
+				}
+			}
+
+
+			var canvas = document.getElementById('canvasOne');
+			var ctx = canvas.getContext('2d');
+			canvas.width = window.innerWidth;
+			canvas.height = window.innerHeight;
+			initDrawCanvas(canvas, ctx);
+
+			// 绘制填充矩形
+			drawRect(100, 50, 200, 200, false, true, '#f36');
+			// 绘制边框矩形
+			drawRect(320, 50, 200, 200, false, false, '#f36');
+			// 绘制填充弧形
+			drawArc(400, 100, 100, 30, 270, false, true, true, 'orange');
+			drawArc(500, 100, 100, 30, 270, false, false, true, 'blue');
+			drawArc(700, 100, 100, 30, 270, false, false, false, 'red');
+			drawArc(800, 100, 100, 30, 270, false, true, false, 'orange');
+			// 绘制圆角矩形
+			drawRoundedRect(900, 100, 50, 50, 10, true, 'green');
+			drawRoundedRect(1000, 100, 50, 50, 10, false, 'green');
+			// 绘制扇形
+			drawSector(100, 300, 50, 20, 290, true, true, '#d0d');
+			drawSector(200, 300, 50, 20, 290, true, false, '#d0d');
+			// 绘制实线
+			drawSolidLine(500, 300, 800,300, 5, '#000');
+			// 绘制点划线
+			drawDashLine(500, 330, 800, 330, [5, 10], 8, 'green');
+			// 绘制虚线
+			drawDottedLine(500, 350, 800, 350, 5, 20, 'blue');
+
+			// 绘制箭头
+			drawArrow(100, 50, 250, 50, 1, 1, 20, 10, '#f36', 4);    
+			drawArrow(300, 50, 450, 50, 2, 1, 20, 10, 'blue', 4);
+			drawArrow(500, 50, 650, 50, 3, 1, 20, 10, 'orange', 4);
+			drawArrow(700, 50, 850, 50, 4, 1, 20, 10, 'green', 4);
+			
+			drawArrow(100, 100, 250, 100, 1, 2, 20, 10, '#f36', 4);    
+			drawArrow(300, 100, 450, 100, 2, 2, 20, 10, 'blue', 4);
+			drawArrow(500, 100, 650, 100, 3, 2, 20, 10, 'orange', 4);
+			drawArrow(700, 100, 850, 100, 4, 2, 20, 10, 'green', 4);
+			
+			drawArrow(100, 150, 250, 250, 1, 2, 20, 10, '#f36', 4);    
+			drawArrow(300, 150, 450, 250, 2, 2, 20, 10, 'blue', 4);
+			drawArrow(500, 150, 650, 250, 3, 2, 20, 10, 'orange', 4);
+			drawArrow(700, 150, 850, 250, 4, 2, 20, 10, 'green', 4);
+			
+			
+			drawArcedArrow(900, 200, 100, 20, 100, true, 4, 1, 20, 10, 'blue', 4);
+
+			// 绘制正多边形
+			drawStarPolygons(800, 500, 100, 5, .35, 30, true, 'red');
+			drawStarPolygons(600, 500, 100, 2.5, 1, 30, false, 'red');
+			
+			
+		}
+	</script>
+</body>
+</html>
