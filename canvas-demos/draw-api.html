@@ -156,12 +156,14 @@
 			// @param {Number} lineWidth - 线宽
 			// @param {String} color - 线颜色
 			function drawSolidLine(startX, startY, endX, endY, lineWidth, color){
+				ctx.save();
 				ctx.strokeStyle = color;
 				ctx.lineWidth = lineWidth;
 				ctx.beginPath();
 				ctx.moveTo(startX, startY);
 				ctx.lineTo(endX, endY);
 				ctx.stroke();
+				ctx.restore();
 			}
 
 			// 绘制点划线
@@ -479,55 +481,82 @@
 
 			var canvas = document.getElementById('canvasOne');
 			var ctx = canvas.getContext('2d');
-			canvas.width = window.innerWidth;
-			canvas.height = window.innerHeight;
+			var w = canvas.width = window.innerWidth;
+			var h = canvas.height = window.innerHeight;
 			initDrawCanvas(canvas, ctx);
 
-			// 绘制填充矩形
-			drawRect(100, 50, 200, 200, false, true, '#f36');
-			// 绘制边框矩形
-			drawRect(320, 50, 200, 200, false, false, '#f36');
-			// 绘制填充弧形
-			drawArc(400, 100, 100, 30, 270, false, true, true, 'orange');
-			drawArc(500, 100, 100, 30, 270, false, false, true, 'blue');
-			drawArc(700, 100, 100, 30, 270, false, false, false, 'red');
-			drawArc(800, 100, 100, 30, 270, false, true, false, 'orange');
-			// 绘制圆角矩形
-			drawRoundedRect(900, 100, 50, 50, 10, true, 'green');
-			drawRoundedRect(1000, 100, 50, 50, 10, false, 'green');
-			// 绘制扇形
-			drawSector(100, 300, 50, 20, 290, true, true, '#d0d');
-			drawSector(200, 300, 50, 20, 290, true, false, '#d0d');
-			// 绘制实线
-			drawSolidLine(500, 300, 800,300, 5, '#000');
-			// 绘制点划线
-			drawDashLine(500, 330, 800, 330, [5, 10], 8, 'green');
-			// 绘制虚线
-			drawDottedLine(500, 350, 800, 350, 5, 20, 'blue');
+			// 绘制一个时钟
 
-			// 绘制箭头
-			drawArrow(100, 50, 250, 50, 1, 1, 20, 10, '#f36', 4);    
-			drawArrow(300, 50, 450, 50, 2, 1, 20, 10, 'blue', 4);
-			drawArrow(500, 50, 650, 50, 3, 1, 20, 10, 'orange', 4);
-			drawArrow(700, 50, 850, 50, 4, 1, 20, 10, 'green', 4);
 			
-			drawArrow(100, 100, 250, 100, 1, 2, 20, 10, '#f36', 4);    
-			drawArrow(300, 100, 450, 100, 2, 2, 20, 10, 'blue', 4);
-			drawArrow(500, 100, 650, 100, 3, 2, 20, 10, 'orange', 4);
-			drawArrow(700, 100, 850, 100, 4, 2, 20, 10, 'green', 4);
+			var radius = 150;
+			var handTruncation = canvas.width / 25;
+			var	hourHandTruncation = canvas.width / 10;
 			
-			drawArrow(100, 150, 250, 250, 1, 2, 20, 10, '#f36', 4);    
-			drawArrow(300, 150, 450, 250, 2, 2, 20, 10, 'blue', 4);
-			drawArrow(500, 150, 650, 250, 3, 2, 20, 10, 'orange', 4);
-			drawArrow(700, 150, 850, 250, 4, 2, 20, 10, 'green', 4);
-			
-			
-			drawArcedArrow(900, 200, 100, 20, 100, true, 4, 1, 20, 10, 'blue', 4);
+			// 绘制时钟刻度盘
+			function drawClockFace() {
+				// step1: 绘制时钟的外圆和圆心
+				ctx.lineWidth = 4;
+				ctx.translate(w / 2, h / 2);
+				
+				drawArc(0, 0, radius, 0, 360, true, true, false, '#000');
+				drawArc(0, 0, 10, 0, 360, true, true, true, '#000');
 
-			// 绘制正多边形
-			drawStarPolygons(800, 500, 100, 5, .35, 30, true, 'red');
-			drawStarPolygons(600, 500, 100, 2.5, 1, 30, false, 'red');
+				
+				// step2: 绘制时钟刻度线
+				for (var i = 0; i < 60; i++) {
+					var rad = getAngle(i * 6);
+					ctx.save();
+					ctx.rotate(rad);
+					if (i % 5 === 0) {
+						drawSolidLine(radius - 15, -1, radius - 4, -1, 4, '#000');
+						
+					} else {
+						drawSolidLine(radius - 8, -1, radius - 4, -1, 2, '#999');					
+					}
+					ctx.restore();
+				}
+				
+				// step3: 绘制时钟数字
+				ctx.font = radius * 0.15 + "px arial";
+				ctx.textBaseline = "middle";
+				ctx.textAlign = "center";
+				for (var i = 1; i < 13; i++) {
+					var ang = getAngle(30 * i);
+					ctx.fillText(i.toString(), radius * 0.80 * Math.sin(ang), -radius * 0.80 * Math.cos(ang));
+				}
+
+			}
+
+			// 绘制时钟针
+			function drawHand(angle, length, width, color) {
+				var endX = Math.sin(angle) * length;
+				var endY = -Math.cos(angle) * length;
+				ctx.lineCap = 'round';
+				drawSolidLine(0, 0, endX, endY, width, color);
+			}
 			
+			function drawHands(radius) {
+				var now = new Date();
+				var hour = now.getHours();
+				var minute = now.getMinutes();
+				var second = now.getSeconds();
+
+				hour = hour % 12;
+				hour = getAngle(30) * hour + getAngle(30) * minute / 60 + getAngle(30) * second / 3600;
+				minute = Math.PI / 30 * minute + second * Math.PI / 1800;
+				second = Math.PI / 30 * second;
+				drawHand(hour, radius * 0.4, radius * 0.07); // 时针
+				drawHand(minute, radius * 0.6, radius * 0.05); // 分针
+				drawHand(second, radius * 0.7, radius * 0.03, 'red'); // 秒针
+			}
+			
+			function drawClock() {
+				ctx.resetTransform();
+				drawRect(0, 0, w, h, true);
+				drawClockFace();
+				drawHands(radius);
+			}
+			setInterval(drawClock, 1000);
 			
 		}
 	</script>
