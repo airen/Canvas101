@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>"Write-On" Effect</title>
+	<style>
+		* {
+			margin: 0;
+			padding: 0;
+		}
+		html,body {
+			width: 100vw;
+			height: 100vh;
+		}
+	</style>
+</head>
+<body>
+	<canvas id="canvasOne" width="500" height="300">
+		
+	</canvas>
+	<script>
+		window.addEventListener('load', eventWindowLoaded, false);
+
+		var Debugger = function () {};
+
+		Debugger.log = function (message) {
+			try {
+				console.log(message);
+			} catch (exception) {
+				return;
+			}
+		}
+
+		function eventWindowLoaded () {
+			canvasApp();
+		}
+
+		function canvasApp () {
+			
+			Debugger.log('Drawing Canvas');
+
+			var canvas = document.getElementById('canvasOne');
+			var ctx = canvas.getContext('2d');
+			var w = canvas.width = window.innerWidth;
+			var h = canvas.height = window.innerHeight;
+
+			// dash-length for off-range
+			var dashLen = 220;
+			// we'll update this, initialize
+			var dashOffset = dashLen;
+			// some arbitrary speed
+			var speed = 5;
+			// the text we will draw
+			var text = "HELLO! W3CPLUS.COM";
+			// start position for x and iterator
+			var x = 30;
+			var i = 0;
+
+			function loop(){
+				// clear canvas for each frame
+				ctx.clearRect(x, 0, 60, 150);
+				// calculate and set current line-dash for this char
+				ctx.setLineDash([dashLen - dashOffset, dashOffset - speed]);
+				// reduce length of off-dash
+				dashOffset -= speed;
+				// draw char to canvas with current dash-length
+				ctx.strokeText(text[i], x, 90);
+
+				// char done? no, the loop
+				if (dashOffset > 0) {
+					requestAnimationFrame(loop);
+				} else {
+					// ok, outline done, lets fill its interior before next
+					ctx.fillText(text[i], x, 90);
+					// reset line-dash length
+					dashOffset = dashLen;
+					// get x position to next char by measuring what we have drawn
+					// notice we offset it a little by random to increase realism
+					x += ctx.measureText(text[i++]).width + ctx.lineWidth * Math.random();
+
+					// lets use an absolute transform to randomize y-position a little
+					ctx.setTransform(1, 0, 0, 1, 0, 3 * Math.random());
+
+					// and just cause we can, rotate it a little too to make it even
+					// more realistic
+					ctx.rotate(Math.random() * 0.005);
+
+					// if we still have chars left, loop animation again for this char
+					if (i < text.length) {
+						requestAnimationFrame(loop);
+					}
+				}
+			}
+
+			function drawScreen() {
+				// Comic Sans?? Let's make it useful for someting;) w/ fallbacks
+				ctx.font = '50px Comic Sans MS, cursive, TSCu_Comic, sans-serif';
+				// thickness of the line
+				ctx.lineWidth = 5;
+				// to avoid spikes we can join each line with a round join
+				ctx.lineJoin = 'round'
+				// increase realism letting background (f.ex. paper) show through
+				ctx.globalAlpha = 2 / 3;
+				// some color, lets use a black pencil
+				ctx.strokeStyle = ctx.fillStyle = '#000';
+				loop();
+			}
+
+			drawScreen();
+		}
+	</script>
+</body>
+</html>

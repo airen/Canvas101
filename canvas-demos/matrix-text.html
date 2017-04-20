@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Matrix</title>
+	<style>
+		* {
+			margin: 0;
+			padding: 0;
+		}
+		html, body {
+			width: 100vw;
+			height: 100vh;
+		}
+	</style>
+</head>
+<body>
+	<canvas id="canvasOne" width="500" height="300">
+		
+	</canvas>
+	<script>
+		window.addEventListener('load', eventWindowLoaded, false);
+
+		var Debugger = function () {};
+
+		Debugger.log = function (message) {
+			try {
+				console.log(message);
+			} catch (exception) {
+				return;
+			}
+		}
+
+		function eventWindowLoaded () {
+			canvasApp();
+		}
+
+		function canvasApp () {
+			// if (!canvasSupport()){
+			// 	return;
+			// }
+
+			var canvas = document.getElementById('canvasOne');
+			var ctx = canvas.getContext('2d');
+			var w = canvas.width = window.innerWidth;
+			var h = canvas.height = window.innerHeight;
+			var yPositions = Array(300).join(0).split('');
+
+			Debugger.log('Drawing Canvas');
+
+			function runMatrix() {
+				if (typeof Game_Interval != 'undefined') clearInterval(Game_interval);
+				Game_Interval = setInterval(drawScreen, 33);
+			}
+			function drawScreen() {
+
+				ctx.fillStyle = 'rgba(0,0,0,.05)';
+				ctx.fillRect(0, 0, w, h);
+				ctx.fillStyle = '#0f0';
+				ctx.font = '10px Georgia';
+				yPositions.map(function(y, index){
+					text = String.fromCharCode(1e2 + Math.random() * 33);
+					x = (index * 10) + 10;
+					ctx.fillText(text, x, y);
+					if (y > 100 + Math.random() * 1e4) {
+						yPositions[index] = 0;
+					} else {
+						yPositions[index] = y + 10;
+					}
+				})
+
+			}
+
+			runMatrix();
+		}
+	</script>
+</body>
+</html>
