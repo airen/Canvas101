@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Canvas Text Effects!</title>
+	<style>
+		* {
+			margin: 0;
+			padding: 0;
+		}
+		html,body {
+			width: 100vw;
+			height: 100vh;
+		}
+	</style>
+</head>
+<body>
+	<canvas id="canvasOne" width="500" height="300">
+		
+	</canvas>
+	<script>
+		window.addEventListener('load', eventWindowLoaded, false);
+
+		var Debugger = function () {};
+
+		Debugger.log = function (message) {
+			try {
+				console.log(message);
+			} catch (exception) {
+				return;
+			}
+		}
+
+		function eventWindowLoaded () {
+			canvasApp();
+		}
+
+		function canvasApp () {
+			// if (!canvasSupport()){
+			// 	return;
+			// }
+
+			var canvas = document.getElementById('canvasOne');
+			var ctx = canvas.getContext('2d');
+			canvas.width = window.innerWidth;
+			canvas.height = window.innerHeight;
+
+			Debugger.log('Drawing Canvas');
+
+			function createInterlace (size, color1, color2){
+				var proto = document.createElement('canvas').getContext('2d');
+				proto.canvas.width = size * 2;
+				proto.canvas.height =  size * 2;
+				proto.fillStyle = color1; // top-left
+				proto.fillRect(0, 0, size, size);
+				proto.fillStyle = color2; // top-right
+				proto.fillRect(size, 0, size, size);
+				proto.fillStyle = color2; //bottom-left
+				proto.fillRect(0, size, size, size);
+				proto.fillStyle = color1; // bottom-right
+				proto.fillRect(size, size, size, size);
+				var pattern = proto.createPattern(proto.canvas, 'repeat');
+				pattern.data = proto.canvas.toDataURL();
+				return pattern;
+			}
+
+			var op_8x8 = createInterlace(8, '#fff', '#eee');
+
+			var image = document.createElement('img');
+			image.width = 42;
+			image.height = 1;
+			image.src = op_8x8.data;
+			image.style.cssText = 'display:inline';
+
+			// get Metrics
+			function getMetrics(text, font) {
+				var metrics = document.getElementById('metrics');
+				if (metrics) {
+					metrics.style.cssText = 'display: block';
+					var parent = metrics.firstChild;
+					parent.firstChild.textContent = text;
+				} else {
+					var parent = document.createElement('span');
+					parent.appendChild(document.createTextNode(text));
+					parent.appendChild(image);
+					var metrics = document.createElement('div');
+					metrics.id = 'metrics';
+					metrics.appendChild(parent);
+					document.body.insertBefore(metrics, document.body.firstChild);
+				}
+				// direction of the text
+				var direction = window.getComputedStyle(document.body, '')['direction'];
+				// getting css equivalent of ctx.measureText()
+				parent.style.cssText = 'font:' + font + ';white-space:nowrap;display:inline;';
+				var width = parent.offsetWidth;
+				var height = parent.offsetHeight;
+
+				// capturing the 'top' and 'bottom' baseline
+				parent.style.cssText = 'font:' + font + ';white-space: nowrap;display:block;';
+				var top = image.offsetTop;
+				var bottom = top - height;
+
+				// capturing '1em'
+				parent.style.cssText = 'font' + font + ';white-space:nowrap; height: 1em; display:block;';
+				parent.firstChild.textContent = '';
+				var em = parent.offsetHeight;
+
+				// cleanup
+				metrics.style.display = 'none';
+
+				return {
+					direction: direction,
+					top: top,
+					em: em,
+					bottom: bottom,
+					height: height,
+					width: width
+				}
+			}
+			var shadowStyles = {
+					'Stereoscopic' : {
+						color: '#000',
+						background: '#fff',
+						shadow: '-0.06em 0 0 red, 0.06em 0 0 cyan'
+					},
+					'Neon': {
+						color: '#fff',
+						background: '#000',
+						shadow: '0 0 10px #fff, 0 0 20px #fff, 0 0 30px #fff, 0 0 40px #ff00de, 0 0 70px #ff00de, 0 0 80px #ff00de, 0 0 100px #ff00de, 0 0 150px #ff00de'
+					},
+					'Anaglyphic': {
+						color: 'rgba(0, 0, 255, 0.5)',
+						background: '#fff',
+						shadow: '3px 3px 0 rgba(255, 0, 180, 0.5)'
+					},
+					'Vintage Radio': {
+						color: '#707070',
+						background: '#ddd',
+						shadow: '2px 2px 0px #eee, 4px 4px 0px #666'
+					},
+					'shadow': {
+						color: '#444',
+						backgorund: '#444',
+						shadow: '0 0 11px #000'
+					},
+					'Shadow ;)': {
+						background: '#ddd',
+						shadow: '0 0 11px #000'
+					},
+					'Shadow3D': {
+						color: '#fff',
+						background: '#ddd',
+						shadow: '1px -1px #444, 2px -2px #444, 3px -3px #444, 4px -4px #444'
+					}
+				}
+
+			function parseShadow(shadows) {
+				var font = '60px Futura, Helvetica, sans-serif';
+				var metrics = getMetrics('test', font);
+				
+				shadows = shadows.split(', ');
+				// console.log(shadows);
+				var ret = [];
+				for (var n = 0; n < shadows.length; n++) {
+					var shadow = shadows[n].split(' ');
+					var type = shadow[0].replace(parseFloat(shadow[0]), '');
+					if (type == 'em') {
+						var obj = {
+							x: metrics.em * parseFloat(shadow[0]),
+							y: metrics.em * parseFloat(shadow[1])
+						}
+						
+					} else {
+						var obj = {
+							x: parseFloat(shadow[0]),
+							y: parseFloat(shadow[1])
+						}
+					}
+					if (shadow[3]) {
+						obj.blur = parseFloat(shadow[2]);
+						obj.color = shadow[3];
+					} else {
+						obj.blur = 0;
+						obj.color = shadow[2];
+					}
+					ret.push(obj);
+				}
+				return ret;
+			}
+
+			function drawTextShadowEffects(){
+				ctx.save();
+				ctx.font = '60px Futura, Helvetica, sans-serif';
+				// absolute position of the text (with a translation state)
+				var offsetX = 50;
+				var offsetY = 62;
+				// gather information about the height of the font
+				var metrics = getMetrics('test', ctx.font);
+				// console.log(metrics.em);
+				var textHeight = metrics.height * 1.2;
+				for (var text in shadowStyles) {
+					var width = ctx.measureText(text).width;
+					var style = shadowStyles[text];
+					// add a background to the current effect
+					ctx.fillStyle = style.background;
+					ctx.fillRect(0, offsetY, ctx.canvas.width, textHeight - 1);
+					// parse text-shadow form css
+					var shadows = parseShadow(style.shadow);
+					// loop through the shadow collection
+					var n = shadows.length;
+					while(n--) {
+						var shadow = shadows[n];
+						var totalWidth = width + shadow.blur * 2;
+						ctx.save();
+						ctx.beginPath();
+						ctx.rect(offsetX - shadow.blur, offsetY, offsetX + totalWidth, textHeight);
+						ctx.clip();
+						if (shadow.blur) {
+							ctx.shadowColor = shadow.color;
+							ctx.shadowOffsetX = shadow.x +  totalWidth;
+							ctx.shadowOffsetY = shadow.y;
+							ctx.shadowBlur = shadow.blur;
+							ctx.fillText(text, -totalWidth + offsetX, offsetY + metrics.top);
+						} else {
+							ctx.fillStyle = shadow.color;
+							ctx.fillText(text, offsetX + (shadow.x || 0), offsetY - (shadow.y || 0) + metrics.top);
+						}
+						ctx.restore();
+					}
+					// drawing the text in the foreground
+					if (style.color) {
+						ctx.fillStyle = style.color;
+						ctx.fillText(text, offsetX, offsetY + metrics.top);
+					}
+					// jump to next em-line
+					ctx.translate(0, textHeight);
+				}
+				ctx.restore();				
+			}
+
+			
+
+			function drawScreen() {				
+				drawTextShadowEffects();
+			}
+
+			drawScreen();
+		}
+	</script>
+</body>
+</html>
