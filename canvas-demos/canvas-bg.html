@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Canvas Background</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        html,
+        body {
+            width: 100vw;
+            height: 100vh;
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="canvasOne" width="500" height="300">
+		
+	</canvas>
+    <script>
+        window.addEventListener('load', eventWindowLoaded, false);
+
+        var Debugger = function() {};
+
+        Debugger.log = function(message) {
+            try {
+                console.log(message);
+            } catch (exception) {
+                return;
+            }
+        }
+
+        function eventWindowLoaded() {
+            canvasApp();
+        }
+
+        function canvasApp() {
+            Debugger.log('Drawing Canvas');
+
+            var canvas = document.getElementById('canvasOne');
+            var ctx = canvas.getContext('2d');
+
+            var canvasWidth = canvas.width = window.innerWidth;
+            var canvasHeight = canvas.height = window.innerHeight;
+
+            var num = canvasWidth * canvasHeight / 810;
+            var arr = [];
+            var i = 0;
+
+            while (arr.length < num) {
+                arr.push({
+                    x: Math.random() * canvasWidth | 0,
+                    y: Math.random() * canvasHeight | 0,
+                    vx: 0,
+                    vy: 0
+                })
+            }
+
+            function _X(foo) {
+                return Math.sin(foo.y / 45) / 0.3;
+            }
+
+            function _Y(foo) {
+                return Math.sin(foo.x / 45) / 0.3;
+            }
+
+            function update(bar) {
+                var n = arr[i];
+                n.x += n.vx;
+                n.y += n.vy;
+
+                if (n.x < 0) {
+                    n.x = canvasWidth + n.x;
+                } else if (n.x >= canvasWidth) {
+                    n.x -= canvasWidth;
+                }
+
+                if (n.y < 0) {
+                    n.y = canvasHeight + n.y;
+                } else if (n.y >= canvasHeight) {
+                    n.y -= canvasHeight;
+                }
+
+                n.vy = _Y(n);
+                n.vx = _X(n);
+            }
+
+            function draw(bar) {
+                var n = arr[i];
+                var color = 'hsla(' + i + ', 90%, 60%, 1)';
+
+                // outer rings
+
+                ctx.beginPath();
+                ctx.fillStyle = color;
+                ctx.globalAlpha = .1;
+                ctx.arc(n.x, n.y, 15 / Math.max((n.vx * n.vx + n.vy * n.vy), .5), 0, 2 * Math.PI, 0);
+                ctx.closePath();
+                ctx.fill();
+
+                // inner rings
+                ctx.beginPath();
+                ctx.globalAlpha = 1;
+                ctx.fillStyle = color;
+                ctx.arc(n.x, n.y, 8 / Math.max((n.vx * n.vx + n.vy * n.vy), .8), 0, 2 * Math.PI, 0);
+                ctx.closePath();
+                ctx.fill();
+            }
+
+            function go() {
+                ctx.fillStyle = 'hsla(0, 0%, 0%, 1)';
+                ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+
+                for (i = 0; i < num; i++) {
+                    update(i);
+                    draw(i);
+                }
+            }
+
+            window.requestAnimFrame = (function() {
+                return window.requestAnimationFrame || window.webkitRequestAnimationFrame || window.mozRequestAnimationFrame || window.oRequestAnimationFrame || window.msRequestAnimationFrame || function(callback) {
+                    window.setTimeout(callback, 1000 / 60);
+                }
+            })();
+
+            function run() {
+                window.requestAnimationFrame(run);
+                go();
+            }
+
+            run();
+
+        }
+    </script>
+</body>
+
+</html>
