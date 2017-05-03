@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Erase Card</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        html {
+            width: 100vw;
+            height: 100vh;
+        }
+        
+        body {
+            min-height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            align-content: center;
+        }
+        
+        #card {
+            width: 540px;
+            height: 360px;
+            background: url(images/duola-a-meng.png) no-repeat center;
+            border: 1px solid rgba(0, 0, 0, .5);
+        }
+    </style>
+</head>
+
+<body>
+    <div id="card">
+        <canvas id="canvasOne" width="500" height="300"></canvas>
+    </div>
+
+    <script>
+        window.addEventListener('load', eventWindowLoaded, false);
+
+        var Debugger = function() {};
+
+        Debugger.log = function(message) {
+            try {
+                console.log(message);
+            } catch (exception) {
+                return;
+            }
+        }
+
+        function eventWindowLoaded() {
+            canvasApp();
+        }
+
+        function canvasApp() {
+
+            Debugger.log('Drawing Canvas');
+
+            var canvas = document.getElementById('canvasOne');
+            var ctx = canvas.getContext('2d');
+            var card = document.getElementById('card');
+            var width = card.offsetWidth;
+            var height = card.offsetHeight;
+            canvas.width = width;
+            canvas.height = height;
+
+            // 鼠标是否按下 
+            var isDown = false;
+
+            // 鼠标移动坐标数组
+            var pointerArr = [];
+
+            // 鼠标当前X轴坐标
+            var xPointer = 0;
+
+            // 鼠标当前Y轴坐标
+            var yPointer = 0;
+
+            var hasTouch = 'ontouchstart' in window ? true : false;
+            var tapStart = hasTouch ? 'touchstart' : 'mousedown';
+            var tapMove = hasTouch ? 'touchmove' : 'mousemove';
+            var tapEnd = hasTouch ? 'touchend' : 'mouseup';
+
+            // 绘制黑色矩形
+
+            ctx.save();
+            ctx.fillStyle = '#939393';
+            ctx.beginPath()
+            ctx.rect(0, 0, width, height);
+            ctx.closePath();
+            ctx.fill();
+            ctx.restore();
+
+            function circleErase(ctx) {
+                ctx.save();
+                ctx.beginPath();
+                ctx.strokeStyle = '#fff';
+                ctx.moveTo(pointerArr[0][0], pointerArr[0][1]);
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
+                ctx.lineWidth = 60;
+                // 新绘制的图形和目标canvas中已经存在的图形内容不重叠的部分的会被保留
+                ctx.globalCompositeOperation = 'destination-out';
+
+                if (pointerArr.length == 1) {
+                    ctx.lineTo(pointerArr[0][0] + 1, pointerArr[0][1] + 1);
+                } else {
+                    for (var i = 1; i < pointerArr.length; i++) {
+                        ctx.lineTo(pointerArr[i][0], pointerArr[i][1]);
+                        ctx.moveTo(pointerArr[i][0], pointerArr[i][1]);
+                    }
+                }
+
+                if (pointerArr.length > 150) {
+                    ctx.clearRect(0, 0, width, height);
+                }
+
+                ctx.closePath();
+                ctx.stroke();
+                ctx.restore();
+            }
+
+            // 鼠标按下事件
+            canvas.addEventListener(tapStart, function(e) {
+                this.style.cursor = 'move';
+
+                isDown = true;
+
+                xPointer = hasTouch ? e.targetTouches[0].pageX : e.clientX - this.offsetLeft;
+                yPointer = hasTouch ? e.targetTouches[0].pageY : e.clientY - this.offsetTop;
+
+                pointerArr.push([xPointer, yPointer]);
+
+                circleErase(ctx);
+            });
+
+            // 鼠标按下后拖动
+            canvas.addEventListener(tapMove, function(e) {
+                if (isDown) {
+                    xPointer = hasTouch ? e.targetTouches[0].pageX : e.clientX - this.offsetLeft;
+                    yPointer = hasTouch ? e.targetTouches[0].pageY : e.clientY - this.offsetTop;
+
+                    pointerArr.push([xPointer, yPointer]);
+
+                    circleErase(ctx);
+                }
+            });
+
+            // 鼠标抬起取消事件
+            canvas.addEventListener(tapEnd, function(e) {
+                isDown = false;
+                pointerArr = [];
+            });
+
+
+        }
+    </script>
+</body>
+
+</html>
