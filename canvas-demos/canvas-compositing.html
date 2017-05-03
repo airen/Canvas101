@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Compositing in HTML5 Canvas</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        html {
+            width: 100vw;
+            height: 100vh;
+        }
+        
+        body {
+            min-height: 100%;
+            background-image: linear-gradient(45deg, #f4f4f4 25%, transparent 25%, transparent 75%, #f4f4f4 75%, #f4f4f4), linear-gradient(45deg, #f4f4f4 25%, transparent 25%, transparent 75%, #f4f4f4 75%, #f4f4f4);
+            background-position: 0 0, 8px 8px;
+            background-size: 16px 16px;
+        }
+        
+        .wrapper {
+            width: 800px;
+            margin: 20px auto;
+        }
+        
+        .form {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            align-content: center;
+            padding: 10px;
+            margin: 0 0 15px;
+        }
+        
+        .form-control {
+            margin: 0 5px;
+        }
+        
+        label,
+        select {
+            display: inline-block;
+            vertical-align: middle;
+        }
+        
+        #canvasOne {
+            border: 1px solid rgba(0, 0, 0, .15);
+            border-radius: 3px;
+            box-shadow: 0 0 5px rgba(0, 0, 0, .05);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="wrapper">
+        <div class="form">
+            <div class="form-control">
+                <label for="compositingSelect">Compositing:</label>
+                <select id="compositingSelect">
+					<option value="source-over" selected>source-over</option>
+					<option value="source-in">source-in</option>
+					<option value="source-out">source-out</option>
+					<option value="source-atop">source-atop</option>
+					<option value="destination-over">destination-over</option>
+					<option value="destination-in">destination-in</option>
+					<option value="destination-out">destination-out</option>
+					<option value="destination-atop">destination-atop</option>
+					<option value="lighter">lighter</option>
+					<option value="darken">darken</option>
+					<option value="xor">xor</option>
+					<option value="copy">copy</option>
+					<option value="screen">screen</option>
+					<option value="overlay">overlay</option>
+					<option value="lighten">lighten</option>
+					<option value="color-dodge">color-dodge</option>
+					<option value="color-burn">color-burn</option>
+					<option value="hard-light">hard-light</option>
+					<option value="soft-light">soft-light</option>
+					<option value="difference">difference</option>
+					<option value="exclusion">exclusion</option>
+					<option value="hue">hue</option>
+					<option value="saturation">saturation</option>
+					<option value="color">color</option>
+					<option value="luminosity">luminosity</option>
+				</select>
+            </div>
+        </div>
+        <canvas id="canvasOne" width="800" height="400"></canvas>
+    </div>
+
+    <script>
+        window.addEventListener('load', eventWindowLoaded, false);
+
+        var Debugger = function() {};
+
+        Debugger.log = function(message) {
+            try {
+                console.log(message);
+            } catch (exception) {
+                return;
+            }
+        }
+
+        function eventWindowLoaded() {
+            canvasApp();
+        }
+
+        function canvasApp() {
+            Debugger.log('Drawing Canvas');
+
+            var canvas = document.getElementById('canvasOne');
+            var ctx = canvas.getContext('2d');
+
+            var w = canvas.width;
+            var h = canvas.height;
+
+            var select = document.getElementById('compositingSelect');
+
+            composition = 'source-over';
+
+            select.addEventListener('change', function() {
+                composition = select.options[select.selectedIndex].value;
+                console.log(composition);
+                ctx.clearRect(0, 0, w, h);
+                // ctx.globalCompositeOperation = composition;
+                drawScreen();
+            })
+
+            function drawScreen() {
+
+                ctx.save();
+                ctx.translate(w / 2, h / 2);
+                ctx.fillStyle = 'rgb(255, 0, 255)';
+                ctx.beginPath();
+                ctx.arc(-50, -50, 100, 0, Math.PI * 2, true);
+                ctx.closePath();
+                ctx.fill();
+
+                ctx.globalCompositeOperation = composition;
+                ctx.fillStyle = 'rgb(0, 255, 255)';
+                ctx.beginPath();
+                ctx.arc(50, -50, 100, 0, Math.PI * 2, true);
+                ctx.closePath();
+                ctx.fill();
+
+                ctx.globalCompositeOperation = composition;
+                ctx.fillStyle = 'rgb(255, 255, 0)';
+                ctx.beginPath();
+                ctx.arc(0, 50, 100, 0, Math.PI * 2, true);
+                ctx.closePath();
+                ctx.fill();
+                ctx.restore();
+
+            }
+
+            drawScreen();
+        }
+    </script>
+</body>
+
+</html>

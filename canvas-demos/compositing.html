@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Compositing in HTML5 Canvas</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        html {
+            width: 100vw;
+            height: 100vh;
+        }
+        
+        body {
+            min-height: 100%;
+            background-image: linear-gradient(45deg, #f4f4f4 25%, transparent 25%, transparent 75%, #f4f4f4 75%, #f4f4f4), linear-gradient(45deg, #f4f4f4 25%, transparent 25%, transparent 75%, #f4f4f4 75%, #f4f4f4);
+            background-position: 0 0, 8px 8px;
+            background-size: 16px 16px;
+            display: flex;
+            justify-content: space-around;
+            align-items: flex-start;
+            align-content: flex-start;
+            flex-wrap: wrap;
+        }
+        
+        canvas {
+            border: 1px solid rgba(0, 0, 0, .15);
+            border-radius: 3px;
+            box-shadow: 0 0 5px rgba(0, 0, 0, .05);
+            margin: 5px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <script>
+        window.addEventListener('load', eventWindowLoaded, false);
+
+        var Debugger = function() {};
+
+        Debugger.log = function(message) {
+            try {
+                console.log(message);
+            } catch (exception) {
+                return;
+            }
+        }
+
+        function eventWindowLoaded() {
+            canvasApp();
+        }
+
+        function canvasApp() {
+            Debugger.log('Drawing Canvas');
+
+            // var canvas = document.getElementById('canvasOne');
+            // var ctx = canvas.getContext('2d');
+
+            var w = 300;
+            var h = 300;
+
+            var compositing = ['source-over', 'source-in', 'source-out', 'source-atop', 'destination-over', 'destination-in', 'destination-out', 'destination-atop', 'lighter', 'copy', 'xor', 'multiply', 'screen', 'overlay', 'darken', 'lighten', 'color-dodge', 'color-burn', 'hard-light', 'soft-light', 'difference', 'exclusion', 'hue', 'saturation', 'color', 'luminosity'];
+            var len = compositing.length;
+            var first = document.body.firstChild;
+
+            function drawScreen() {
+
+                for (var i = 0; i < len; i++) {
+                    var canvas = document.createElement('canvas');
+                    canvas.width = w;
+                    canvas.height = h;
+                    document.body.insertBefore(canvas, first);
+                }
+
+                var canvas = document.querySelectorAll('canvas');
+
+                for (var i = 0; i < canvas.length; i++) {
+                    var ctx = canvas[i].getContext('2d');
+
+                    ctx.save();
+                    ctx.translate(w / 2, h / 2);
+                    ctx.fillStyle = 'red';
+                    ctx.beginPath();
+                    ctx.arc(-40, 20, 80, 0, Math.PI * 2, true);
+                    ctx.closePath();
+                    ctx.fill();
+
+                    ctx.globalCompositeOperation = compositing[i];
+
+                    ctx.fillStyle = 'orange';
+                    ctx.beginPath();
+                    ctx.arc(40, 20, 80, 0, Math.PI * 2, true);
+                    ctx.closePath();
+                    ctx.fill();
+                    ctx.restore();
+
+                    ctx.fillStyle = 'black';
+                    ctx.textBaseline = 'middle';
+                    ctx.textAlign = 'center';
+                    ctx.font = '30px Arial';
+                    ctx.fillText((i + 1) + ': ' + compositing[i], w / 2, 40);
+
+                }
+
+            }
+
+            drawScreen();
+        }
+    </script>
+</body>
+
+</html>
