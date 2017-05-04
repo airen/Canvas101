@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Erase Card</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        html {
+            width: 100vw;
+            height: 100vh;
+        }
+        
+        body {
+            min-height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            align-content: center;
+        }
+        
+        #card {
+            width: 540px;
+            height: 360px;
+            background: url(images/duola-a-meng.png) no-repeat center;
+            border: 1px solid rgba(0, 0, 0, .5);
+        }
+    </style>
+</head>
+
+<body>
+    <div id="card">
+
+    </div>
+
+    <script>
+        window.addEventListener('load', eventWindowLoaded, false);
+
+        var Debugger = function() {};
+
+        Debugger.log = function(message) {
+            try {
+                console.log(message);
+            } catch (exception) {
+                return;
+            }
+        }
+
+        function eventWindowLoaded() {
+            canvasApp();
+        }
+
+        function canvasApp() {
+
+            Debugger.log('Drawing Canvas');
+
+            function createCanvas(parent, width, height) {
+                var canvas = {};
+                canvas.node = document.createElement('canvas');
+                canvas.ctx = canvas.node.getContext('2d');
+                canvas.node.width = width || 100;
+                canvas.node.height = height || 100;
+                parent.appendChild(canvas.node);
+                return canvas;
+            }
+
+            function draw(container, width, height, fillColor) {
+                var canvas = createCanvas(container, width, height);
+                var ctx = canvas.ctx;
+
+                // Define a custom fillCircle method
+                ctx.fillCircle = function(x, y, radius, fillColor) {
+                    this.save();
+                    this.fillStyle = fillColor;
+                    this.beginPath();
+                    this.moveTo(x, y);
+                    this.arc(x, y, radius, 0, Math.PI * 2, false);
+                    this.closePath();
+                    this.fill();
+                    this.restore();
+                };
+
+                ctx.clearTo = function(fillColor) {
+                    ctx.fillStyle = fillColor;
+                    ctx.fillRect(0, 0, width, height);
+                };
+
+                ctx.clearTo(fillColor || '#ddd');
+
+                // Bind mouse events
+                canvas.node.onmousemove = function(e) {
+                    if (!canvas.isDrawing) {
+                        return;
+                    }
+
+                    var x = e.pageX - this.offsetLeft;
+                    var y = e.pageY - this.offsetTop;
+                    var radius = 30;
+                    var fillColor = '#f00';
+                    ctx.globalCompositeOperation = 'destination-out';
+                    ctx.fillCircle(x, y, radius, fillColor);
+                };
+
+                canvas.node.onmousedown = function(e) {
+                    canvas.isDrawing = true;
+                }
+
+                canvas.node.onmouseup = function(e) {
+                    canvas.isDrawing = false;
+                }
+            }
+
+            var container = document.getElementById('card');
+            var width = card.offsetWidth - 2;
+            var height = card.offsetHeight - 2;
+
+            draw(container, width, height, '#ddd');
+
+        }
+    </script>
+</body>
+
+</html>
