@@ -13,6 +13,11 @@ Learning Canvas series
 - [Canvas学习：绘制圆和圆弧](https://www.w3cplus.com/canvas/drawing-arc-and-circle.html)
 - [Canvas学习：绘制箭头](https://www.w3cplus.com/canvas/drawing-arrow.html)
 - [Canvas学习：贝塞尔曲线](https://www.w3cplus.com/canvas/drawing-curve.html)
+- [Canvas学习：绘制正多边形](https://www.w3cplus.com/canvas/drawing-regular-polygons.html)
+- [Canvas学习：坐标变换](https://www.w3cplus.com/canvas/transformation-coordinates.html)
+- [Canvas学习：自定义的坐标变换](https://www.w3cplus.com/canvas/custom-of-coordinate-transformation.html)
+- [Canvas学习：封装Canvas绘制基本图形API](https://www.w3cplus.com/canvas/canvas-drawing-function.html)
+- [Canvas学习：绘制文本](https://www.w3cplus.com/canvas/drawing-text.html)
 
 ## Canvas Demos
 
