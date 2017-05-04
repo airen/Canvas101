@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Canvas Compositing</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        html {
+            width: 100vw;
+            height: 100vh;
+        }
+        
+        body {
+            min-height: 100%;
+        }
+        
+        .wrapper {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            align-items: flex-start;
+            align-content: flex-start;
+        }
+    </style>
+</head>
+
+<body>
+
+    <script>
+        window.addEventListener('load', eventWindowLoaded, false);
+
+        var Debugger = function() {};
+
+        Debugger.log = function(message) {
+            try {
+                console.log(message);
+            } catch (exception) {
+                return;
+            }
+        }
+
+        function eventWindowLoaded() {
+            canvasApp();
+        }
+
+        function canvasApp() {
+
+            Debugger.log('Drawing Canvas');
+
+            var canvas1 = document.createElement('canvas');
+            var canvas2 = document.createElement('canvas');
+            var gco = ['source-over', 'source-in', 'source-out', 'source-atop', 'destination-over', 'destination-in', 'destination-out', 'destination-atop', 'lighter', 'copy', 'xor', 'multiply', 'screen', 'overlay', 'darken', 'lighten', 'color-dodge', 'color-burn', 'hard-light', 'soft-light', 'difference', 'exclusion', 'hue', 'saturation', 'color', 'luminosity'].reverse();
+
+            var width = 320;
+            var height = 340;
+
+            // lum in sRGB
+            var lum = {
+                r: 0.33,
+                g: 0.33,
+                b: 0.33
+            }
+
+            // HSV (1978) = H: Hue / S: Saturation / V: Value
+            Color = {}
+            Color.HSV_RGB = function(o) {
+                var H = o.H / 360;
+                var S = o.S / 100;
+                var V = o.V / 100;
+                var R, G, B, A, C, D;
+
+                if (S == 0) {
+                    R = G = B = Math.round(V * 255);
+                } else {
+                    if (H >= 1) H = 0;
+                    H = 6 * H;
+                    D = H - Math.floor(H);
+                    A = Math.round(255 * V * (1 - S));
+                    B = Math.round(255 * V * (1 - S * D));
+                    C = Math.round(255 * V * (1 - (S * (1 - D))));
+                    V = Math.round(255 * V);
+
+                    switch (Math.floor(H)) {
+                        case 0:
+                            R = V;
+                            G = C;
+                            B = A;
+                            break;
+                        case 1:
+                            R = B;
+                            G = V;
+                            B = A;
+                            break;
+                        case 2:
+                            R = A;
+                            G = V;
+                            B = C;
+                            break;
+                        case 3:
+                            R = A;
+                            G = B;
+                            B = V;
+                            break;
+                        case 4:
+                            R = C;
+                            G = A;
+                            B = V;
+                            break;
+                        case 5:
+                            R = V;
+                            G = A;
+                            B = B;
+                            break;
+                    }
+                }
+
+                return {
+                    R: R,
+                    G: G,
+                    B: B
+                }
+            }
+
+            // resize canvas
+
+            canvas1.width = canvas2.width = width;
+            canvas1.height = canvas2.height = height;
+
+            // create Interlace pattern
+            function createInterlace(size, color1, color2) {
+                var ctx = document.createElement('canvas').getContext('2d');
+
+                ctx.canvas.width = size * 2;
+                ctx.canvas.height = size * 2;
+
+                ctx.fillStyle = color1; // top-left
+                ctx.fillRect(0, 0, size, size);
+                ctx.fillStyle = color2; // top-right
+                ctx.fillRect(size, 0, size, size);
+                ctx.fillStyle = color2; // bottom-left
+                ctx.fillRect(0, size, size, size);
+                ctx.fillStyle = color1; // bottom-right
+                ctx.fillRect(size, size, size, size);
+
+                var pattern = ctx.createPattern(ctx.canvas, 'repeat');
+
+                pattern.data = ctx.canvas.toDataURL();
+
+                return pattern;
+            }
+
+            var op_8x8 = createInterlace(8, '#fff', '#eee');
+
+            // Create Canvas function
+            function createCanvas() {
+                var canvas = document.createElement('canvas');
+                canvas.style.background = 'url(' + op_8x8.data + ')';
+                canvas.style.border = '1px solid #000';
+                canvas.style.margin = '5px';
+                canvas.width = width / 2;
+                canvas.height = height / 2;
+                return canvas;
+            }
+
+            function lightMix() {
+                var ctx = canvas2.getContext('2d');
+
+                ctx.save();
+                ctx.globalCompositeOperation = 'lighter';
+
+                ctx.beginPath();
+                ctx.fillStyle = 'rgba(255, 0, 0, 1)';
+                ctx.arc(100, 200, 100, Math.PI * 2, 0, false);
+                ctx.fill();
+
+                ctx.beginPath();
+                ctx.fillStyle = 'rgba(0, 0, 255, 1)';
+                ctx.arc(220, 220, 100, Math.PI * 2, 0, false);
+                ctx.fill();
+
+                ctx.beginPath();
+                ctx.fillStyle = 'rgba(0, 255, 0, 1)';
+                ctx.arc(160, 100, 100, Math.PI * 2, 0, false);
+                ctx.fill();
+                ctx.restore();
+
+                ctx.fillStyle = '#f00';
+                ctx.fillRect(0, 0, 30, 30);
+
+            }
+
+            function colorSphere(element) {
+                var ctx = canvas1.getContext('2d');
+                var width = 360;
+                var halfWidth = width / 2;
+                var rotate = (1 / 360) * Math.PI * 2;
+                var offset = 0;
+                var oLeft = -20;
+                var oTop = -20;
+
+                for (var n = 0; n <= 359; n++) {
+                    var gradient = ctx.createLinearGradient(oLeft + halfWidth, oTop, oLeft + halfWidth, oTop + halfWidth);
+                    var color = Color.HSV_RGB({
+                        H: (n + 300) % 360,
+                        S: 100,
+                        V: 100
+                    });
+
+                    gradient.addColorStop(0, 'rgba(0,0,0,0)');
+                    gradient.addColorStop(0.7, 'rgba(' + color.R + ',' + color.G + ',' + color.B + ',1)');
+                    gradient.addColorStop(1, 'rgba(255,255,255,1)');
+
+                    ctx.beginPath();
+                    ctx.moveTo(oLeft + halfWidth, oTop);
+                    ctx.lineTo(oLeft + halfWidth, oTop + halfWidth);
+                    ctx.lineTo(oLeft + halfWidth + 6, oTop);
+
+                    ctx.fillStyle = gradient;
+                    ctx.fill();
+
+                    ctx.translate(oLeft + halfWidth, oTop + halfWidth);
+                    ctx.rotate(rotate);
+                    ctx.translate(-(oLeft + halfWidth), -(oTop + halfWidth));
+                }
+
+                ctx.fillStyle = '#00f';
+                ctx.fillRect(15, 15, 30, 30);
+
+                return ctx.canvas;
+            }
+
+            function runComposite() {
+                var eleWrap = document.createElement('div');
+                eleWrap.classList = 'wrapper';
+                // document.body.appendChild(eleWrap);
+                document.body.insertBefore(eleWrap, document.body.firstChild);
+
+                while (gco.length) {
+                    var pop = gco.pop();
+                    var itemBox = document.createElement('div');
+                    itemBox.classList = 'item';
+                    eleWrap.appendChild(itemBox);
+                    var header = document.createElement('h3');
+                    header.textContent = pop;
+                    itemBox.appendChild(header);
+
+                    var canvasToDrawOn = createCanvas();
+                    var canvasToDrawFrom = createCanvas();
+                    var canvasToDrawResult = createCanvas();
+
+                    var ctx = canvasToDrawResult.getContext('2d');
+
+                    ctx.clearRect(0, 0, width, height);
+                    ctx.save();
+                    ctx.drawImage(canvas1, 0, 0, width / 2, height / 2);
+                    ctx.globalCompositeOperation = pop;
+                    ctx.drawImage(canvas2, 0, 0, width / 2, height / 2);
+                    ctx.globalCompositeOperation = 'source-over';
+                    ctx.fillStyle = 'rgba(0, 0, 0, .8)';
+                    ctx.fillRect(0, height / 2 - 20, width / 2, 20);
+                    ctx.fillStyle = '#fff';
+                    ctx.font = '14px Arial';
+                    ctx.fillText(pop, 5, height / 2 - 5);
+                    ctx.restore();
+
+
+                    var ctx = canvasToDrawOn.getContext('2d');
+
+                    ctx.clearRect(0, 0, width, height);
+                    ctx.save();
+                    ctx.drawImage(canvas1, 0, 0, width / 2, height / 2);
+                    ctx.fillStyle = 'rgba(0, 0, 0, .8)';
+                    ctx.fillRect(0, height / 2 - 20, width / 2, 20);
+                    ctx.fillStyle = '#fff';
+                    ctx.font = '14px Arial';
+                    ctx.fillText('Existing Content', 5, height / 2 - 5);
+                    ctx.restore();
+
+                    var ctx = canvasToDrawFrom.getContext('2d');
+                    ctx.clearRect(0, 0, width, height);
+                    ctx.save();
+                    ctx.drawImage(canvas2, 0, 0, width / 2, height / 2);
+                    ctx.fillStyle = 'rgba(0, 0, 0, .8)';
+                    ctx.fillRect(0, height / 2 - 20, width / 2, 20);
+                    ctx.fillStyle = '#fff';
+                    ctx.font = '14px Arial';
+                    ctx.fillText('New Content', 5, height / 2 - 5);
+
+                    itemBox.appendChild(canvasToDrawOn);
+                    itemBox.appendChild(canvasToDrawFrom);
+                    itemBox.appendChild(canvasToDrawResult);
+                }
+
+            }
+
+            lightMix();
+            colorSphere();
+            runComposite();
+        }
+    </script>
+</body>
+
+</html>
