@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Spotlight Effect</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        html {
+            width: 100vw;
+            height: 100vh;
+        }
+        
+        body {
+            /*background: url("https://farm3.staticflickr.com/2908/32764885503_1a04915b11_k.jpg") no-repeat center;*/
+            width: 100vw;
+            min-height: 100%;
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="canvasOne" width="500" height="300"></canvas>
+    <script>
+        window.addEventListener('load', eventWindowLoaded, false);
+
+        var Debugger = function() {};
+
+        Debugger.log = function(message) {
+            try {
+                console.log(message);
+            } catch (exception) {
+                return;
+            }
+        }
+
+        function eventWindowLoaded() {
+            canvasApp();
+        }
+
+        function canvasApp() {
+            Debugger.log('Drawing Canvas');
+
+
+            var canvas = document.getElementById('canvasOne');
+            var ctx = canvas.getContext('2d');
+
+            var w = canvas.width = window.innerWidth;
+            var h = canvas.height = window.innerHeight;
+
+            var image = new Image();
+
+            image.src = 'https://farm3.staticflickr.com/2908/32764885503_1a04915b11_k.jpg';
+
+            image.onload = function() {
+                ctx.drawImage(image, 0, 0);
+            }
+
+            // 设置探照灯对象模型
+            // @param (x, y): 表示圆心坐标
+            // @param radius: 圆心半径
+            // @param vx, vy: 水平和垂直方向的速度，通过他们控制速度大小
+            var spotlight = {
+                x: w / 2,
+                y: h / 2,
+                radius: 100,
+                vx: Math.random() * 5 + 10,
+                vy: Math.random() * 5 + 15
+            };
+
+            // 通过setInterval来更新模型的位置
+            // 每40ms更新一次
+            setInterval(function() {
+                draw();
+                update(w, h);
+            }, 40);
+
+            function draw() {
+                ctx.clearRect(0, 0, w, h);
+
+                ctx.save();
+
+                ctx.beginPath();
+                ctx.fillStyle = '#000';
+                ctx.fillRect(0, 0, w, h);
+                ctx.fill();
+
+                ctx.save();
+                ctx.beginPath();
+                ctx.arc(spotlight.x, spotlight.y, spotlight.radius, 0, Math.PI * 2, false);
+                ctx.fill();
+
+                // 将上面的区域作为剪辑区域
+                ctx.clip();
+
+                // 由于使用clip()，画布背景图片会出现在clip()区域内
+                ctx.drawImage(image, 0, 0);
+
+                ctx.restore();
+            }
+
+            // 小球运动模型
+            function update(w, h) {
+                spotlight.x += spotlight.vx;
+                spotlight.y += spotlight.vy;
+
+                // 如果小球超出了左边的边界，则速度反向，x 点变为圆的半径
+                if (spotlight.x - spotlight.radius <= 0) {
+                    spotlight.vx = -spotlight.vx;
+                    spotlight.x = spotlight.radius;
+                }
+
+                // 如果小球超出了右边的边界，则速度反向，x点变为画布宽度-圆的半径
+                if (spotlight.x + spotlight.radius >= w) {
+                    spotlight.vx = -spotlight.vx;
+                    spotlight.x = w - spotlight.radius;
+                }
+
+                // Y轴方向处理
+                if (spotlight.y - spotlight.radius <= 0) {
+                    spotlight.vy = -spotlight.vy;
+                    spotlight.y = spotlight.radius;
+                }
+
+                if (spotlight.y + spotlight.radius >= h) {
+                    spotlight.vy = -spotlight.vy;
+                    spotlight.y = h - spotlight.radius;
+                }
+            }
+
+        }
+    </script>
+</body>
+
+</html>
