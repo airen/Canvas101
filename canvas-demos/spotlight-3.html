@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Spotlight Effect</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        html {
+            width: 100vw;
+            height: 100vh;
+        }
+        
+        body {
+            /*background: url("https://farm3.staticflickr.com/2908/32764885503_1a04915b11_k.jpg") no-repeat center;*/
+            width: 100vw;
+            min-height: 100%;
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="canvasOne" width="500" height="300"></canvas>
+    <script>
+        window.addEventListener('load', eventWindowLoaded, false);
+
+        var Debugger = function() {};
+
+        Debugger.log = function(message) {
+            try {
+                console.log(message);
+            } catch (exception) {
+                return;
+            }
+        }
+
+        function eventWindowLoaded() {
+            canvasApp();
+        }
+
+        function canvasApp() {
+            Debugger.log('Drawing Canvas');
+
+
+            var canvas = document.getElementById('canvasOne');
+            var ctx = canvas.getContext('2d');
+
+            var w = canvas.width = window.innerWidth;
+            var h = canvas.height = window.innerHeight;
+
+            var image = new Image();
+
+            image.src = 'https://farm3.staticflickr.com/2946/33107045414_f1b635aea6_k.jpg';
+
+            image.onload = function() {
+                ctx.drawImage(image, 0, 0);
+            }
+
+            var tempR = Math.floor(Math.random() * 30 + 20);
+            var tempX = Math.floor(Math.random() * (w - tempR) + tempR);
+            var tempY = Math.floor(Math.random() * (h - tempR) + tempR);
+
+            var spotlight = {
+                x: tempX,
+                y: tempY,
+                r: tempR,
+                stepX: Math.floor(Math.random() * 21 - 10),
+                stepY: Math.floor(Math.random() * 21 - 10)
+            };
+
+            function update() {
+                spotlight.x += spotlight.stepX;
+                spotlight.y += spotlight.stepY;
+                bumpFn(spotlight);
+            }
+
+            function bumpFn(ele) {
+                // 球体（arc绘制的一个圆）碰到画布左侧
+                if (ele.x <= ele.r) {
+                    ele.x = ele.r;
+                    ele.stepX = -ele.stepX;
+                }
+
+                // 球体碰到画布右侧
+                if (ele.x >= w - ele.r) {
+                    ele.x = w - ele.r;
+                    ele.stepX = -ele.stepX;
+                }
+
+                // 球体碰到画布顶部
+                if (ele.y <= ele.r) {
+                    ele.y = ele.r;
+                    ele.stepY = -ele.stepY;
+                }
+
+                // 球体碰到画布底部
+                if (ele.y >= h - ele.r) {
+                    ele.y = h - ele.r;
+                    ele.stepY = -ele.stepY;
+                }
+            }
+
+            function draw() {
+                ctx.clearRect(0, 0, w, h);
+
+                ctx.save();
+
+                // 将画布背景涂黑
+                ctx.fillStyle = '#000';
+                ctx.fillRect(0, 0, w, h);
+
+                // 绘制探照灯
+                ctx.beginPath();
+                ctx.arc(spotlight.x, spotlight.y, spotlight.r, 0, Math.PI * 2, false);
+                ctx.fill();
+                ctx.clip(); // 使用clip()，画布背景图片只会出现在clip()的裁切区域
+
+                ctx.drawImage(image, 0, 0);
+                ctx.restore();
+            }
+
+            clearInterval(oTimer);
+
+            function fnInterval() {
+                update();
+                draw();
+            }
+
+            var oTimer = setInterval(fnInterval, 50);
+
+
+
+
+        }
+    </script>
+</body>
+
+</html>
