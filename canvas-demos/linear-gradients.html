@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Animated Canvas Gradient</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        html,
+        body {
+            width: 100vw;
+            height: 100vh;
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="canvasOne" width="500" height="300">
+		
+	</canvas>
+    <script>
+        window.addEventListener('load', eventWindowLoaded, false);
+
+        var Debugger = function() {};
+
+        Debugger.log = function(message) {
+            try {
+                console.log(message);
+            } catch (exception) {
+                return;
+            }
+        }
+
+        function eventWindowLoaded() {
+            canvasApp();
+        }
+
+        function canvasApp() {
+            Debugger.log('Drawing Canvas');
+
+            var canvas = document.getElementById('canvasOne');
+            var ctx = canvas.getContext('2d');
+            var w = canvas.width = window.innerWidth;
+            var h = canvas.height = window.innerHeight;
+
+            // Shim layer with setTimeout fallback
+            window.requestAnimFrame = (function() {
+                return window.requestAnimationFrame || window.webkitRequestAnimationFrame || window.mozRequestAnimationFrame || window.oRequestAnimationFrame || window.msRequestAnimationFrame || function(callback) {
+                    window.setTimeout(callback, 1000 / 60);
+                }
+            })();
+
+            // Interpolation
+            function lerp(a, b, u) {
+                return (1 - u) * a + u * b;
+            }
+
+            // Animation settings
+            var Anim = {
+                'duration': 3000,
+                'interval': 10,
+                'stepUnit': 1.0,
+                'currUnit': 0
+            }
+
+            function Gradient(ctx, width, height) {
+                this.ctx = ctx;
+                this.width = width;
+                this.height = height;
+                this.colorStops = [];
+                this.currentStop = 0;
+            }
+
+            Gradient.prototype.addStop = function(pos, colors) {
+                var stop = {
+                    'pos': pos,
+                    'colors': colors,
+                    'currColor': null
+                };
+                this.colorStops.push(stop);
+            }
+
+            // Interpolate colors of stops
+            Gradient.prototype.updateStops = function() {
+                var steps = Anim.duration / Anim.interval;
+                var step_u = Anim.stepUnit / steps;
+                var stopsLength = this.colorStops[0].colors.length - 1;
+
+                // Cycle through all stops in gradient
+                for (var i = 0; i < this.colorStops.length; i++) {
+                    var stop = this.colorStops[i];
+                    var startColor = stop.colors[this.currentStop]; // Get stop 1 color
+                    var endColor, r, g, b;
+
+                    // Get stop 2 color, go to first if at last stop
+                    if (this.currentStop < stopsLength) {
+                        endColor = stop.colors[this.currentStop + 1];
+                    } else {
+                        endColor = stop.colors[0];
+                    }
+
+                    // Interpolate both stop 1&2 colors to get new color based on animation unit
+                    r = Math.floor(lerp(startColor.r, endColor.r, Anim.currUnit));
+                    g = Math.floor(lerp(startColor.g, endColor.g, Anim.currUnit));
+                    b = Math.floor(lerp(startColor.b, endColor.b, Anim.currUnit));
+
+                    stop.currColor = 'rgb(' + r + ',' + g + ',' + b + ')';
+                }
+
+                // Update current stop and animation units if interpolation is complete
+                if (Anim.currUnit >= 1) {
+                    Anim.currUnit = 0;
+
+                    if (this.currentStop < stopsLength) {
+                        this.currentStop++;
+                    } else {
+                        this.currentStop = 0;
+                    }
+                }
+
+                // Increment animation unit
+                Anim.currUnit += step_u;
+            }
+
+            Gradient.prototype.draw = function() {
+                var gradient = ctx.createLinearGradient(0, this.width, this.height, 0);
+
+                for (var i = 0; i < this.colorStops.length; i++) {
+                    var stop = this.colorStops[i];
+                    var pos = stop.pos;
+                    var color = stop.currColor;
+
+                    gradient.addColorStop(pos, color);
+                }
+
+                this.ctx.clearRect(0, 0, this.width, this.height);
+                this.ctx.fillStyle = gradient;
+                this.ctx.fillRect(0, 0, this.width, this.height);
+            }
+
+            var stopAColor = [
+                // blue
+                {
+                    'r': '9',
+                    'g': '117',
+                    'b': '190'
+                },
+                // green
+                {
+                    'r': '59',
+                    'g': '160',
+                    'b': '89'
+                },
+                // yellow
+                {
+                    'r': '230',
+                    'g': '192',
+                    'b': '39'
+                },
+                // red
+                {
+                    'r': '238',
+                    'g': '30',
+                    'b': '77'
+                }
+            ];
+            var stopBcolor = [
+                // pink
+                {
+                    'r': '205',
+                    'g': '24',
+                    'b': '75'
+                },
+                // blue
+                {
+                    'r': '33',
+                    'g': '98',
+                    'b': '155'
+                },
+                // green
+                {
+                    'r': '64',
+                    'g': '149',
+                    'b': '69'
+                },
+                // yellow
+                {
+                    'r': '228',
+                    'g': '171',
+                    'b': '33'
+                }
+            ];
+
+            var update = function() {
+                gradient = new Gradient(ctx, w, h);
+                gradient.addStop(0, stopAColor);
+                gradient.addStop(1, stopBcolor);
+            }
+
+            update();
+
+            window.addEventListener('resize', function() {
+                update();
+            });
+
+            (function animloop() {
+                requestAnimFrame(animloop);
+                gradient.updateStops();
+                gradient.draw();
+            })();
+        }
+    </script>
+</body>
+
+</html>

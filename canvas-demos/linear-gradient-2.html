@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Canvas Gradient Animation</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        html,
+        body {
+            width: 100vw;
+            height: 100vh;
+            background: #333;
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="canvasOne" width="500" height="300">
+		
+	</canvas>
+    <script>
+        window.addEventListener('load', eventWindowLoaded, false);
+
+        var Debugger = function() {};
+
+        Debugger.log = function(message) {
+            try {
+                console.log(message);
+            } catch (exception) {
+                return;
+            }
+        }
+
+        function eventWindowLoaded() {
+            canvasApp();
+        }
+
+        function canvasApp() {
+            Debugger.log('Drawing Canvas');
+
+            var canvas = document.getElementById('canvasOne');
+            var ctx = canvas.getContext('2d');
+            var w = canvas.width = window.innerWidth;
+            var h = canvas.height = window.innerHeight;
+
+            var lastTime = 0;
+            var vendors = ['webkit', 'moz', 'ms', 'o'];
+
+            for (var i = 0; i < vendors.length && !window.requestAnimationFrame; ++i) {
+                window.requestAnimationFrame = window[vendors[i] + 'RequestAnimationFrame'];
+                window.cancelAnimationFrame = window[vendors[i] + 'CancelAnimationFrame'] || window[vendors[i] + 'CancelRequestAnimationFrame'];
+            }
+
+            if (!window.requestAnimationFrame) {
+                window.requestAnimationFrame = function(callback, element) {
+                    var currTime = new Date().getTime();
+                    var timeToCall = Math.max(0, 16 - (currTime - lastTime));
+                    var id = window.setTimeout(function() {
+                        callback(currTime + timeToCall);
+                    }, timeToCall);
+
+                    lastTime = currTime + timeToCall;
+                    return id;
+                }
+            }
+
+            if (!window.cancelAnimationFrame) {
+                window.cancelAnimationFrame = function(id) {
+                    clearTimeout(id);
+                }
+            }
+
+            var R = 200;
+            var colorsLength = 6;
+            var A = 360 / colorsLength;
+            var angleIncrement = 0;
+            var grd, ap, af, xp, yp, xf, yf;
+            var rad = Math.PI / 180;
+            var stopped = false;
+
+            ctx.lineWidth = 25;
+
+            function draw() {
+                ctx.clearRect(0, 0, w, h);
+
+                if (angleIncrement >= 360) {
+                    angleIncrement = 0;
+                } else {
+                    angleIncrement++;
+                }
+
+                for (var i = 0; i < colorsLength; i++) {
+                    ap = A * i;
+                    af = A * (i + 1) + .5;
+
+                    apRad = rad * ap;
+                    afRad = rad * af;
+
+                    ctx.beginPath();
+                    ctx.arc(w / 2, h / 2, R, apRad, afRad, false);
+
+                    xp = w / 2 + R * Math.cos(apRad);
+                    yp = h / 2 + R * Math.sin(apRad);
+
+                    xf = w / 2 + R * Math.cos(afRad);
+                    yf = h / 2 + R * Math.sin(afRad);
+
+                    grd = ctx.createLinearGradient(xp, yp, xf, yf);
+                    grd.addColorStop(0, 'hsl(' + (ap + angleIncrement) + ', 100%, 50%)');
+                    grd.addColorStop(1, 'hsl(' + (af + angleIncrement) + ', 100%, 50%)');
+
+                    ctx.strokeStyle = grd;
+
+                    ctx.stroke();
+                }
+
+                requestId = window.requestAnimationFrame(draw);
+            }
+
+            function start() {
+                requestId = window.requestAnimationFrame(draw);
+                stopped = false;
+            }
+
+            function stopAnim() {
+                if (requestId) {
+                    window.cancelAnimationFrame(requestId);
+                }
+                stopped = true;
+            }
+
+            start();
+
+            canvas.addEventListener('click', function() {
+                stopped == true ? start() : stopAnim();
+            }, false);
+
+        }
+    </script>
+</body>
+
+</html>
