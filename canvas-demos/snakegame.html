@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Sanke Game!</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        html {
+            width: 100vw;
+            height: 100vh;
+        }
+        
+        body {
+            min-height: 100%;
+            background: #000;
+        }
+        
+        #game {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: lightslategrey url('images/snake.png') center no-repeat;
+            background-blend-mode: screen, luminosity, color-burn;
+        }
+        
+        canvas {
+            position: relative;
+            z-index: 1;
+            background-blend-mode: screen, luminosity, color-burn;
+        }
+        
+        #control {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 2;
+            text-align: center;
+        }
+        
+        p {
+            font-family: Helvetica;
+            font-weight: bold;
+            color: #fff;
+            font-size: 3rem;
+            text-align: center;
+            filter: contrast(9);
+            margin-bottom: 15px;
+        }
+        
+        button {
+            color: #eb1777;
+            background: transparent;
+            border: 2px solid #eb1777;
+            position: relative;
+            margin: 1em;
+            font-size: 2em;
+            display: inline-block;
+            padding: 0.5em 1em;
+            transition: all 0.3s ease-in-out;
+            text-align: center;
+            font-family: comfortaa;
+            font-weight: bold
+        }
+        
+        button:before,
+        button:after {
+            content: '';
+            display: block;
+            position: absolute;
+            border-color: #eb1777;
+            border-style: solid;
+            width: 1em;
+            height: 1em;
+            transition: all 0.3s ease-in-out
+        }
+        
+        button:before {
+            top: -6px;
+            left: -6px;
+            border-width: 2px 0 0 2px;
+            z-index: 5;
+        }
+        
+        button:after {
+            bottom: -6px;
+            right: -6px;
+            border-width: 0 2px 2px 0;
+        }
+        
+        button:hover:before,
+        button:hover:after {
+            width: calc(100% + 12px);
+            height: calc(100% + 12px);
+            border-color: #eb1777
+        }
+        
+        button:hover {
+            color: #fff;
+            background-color: #eb1777;
+            border-color: #eb1777
+        }
+    </style>
+</head>
+
+<body>
+    <div id="game">
+        <canvas id="canvasOne" width="500" height="300"></canvas>
+        <div id="control">
+            <p>Press start and eat the pizza!</p>
+            <button id="btn">Start</button>
+        </div>
+    </div>
+    <script>
+        // Demo:http://www.competa.com/blog/how-to-build-a-snake-game-using-javascript-and-html5-canvas/
+        var canvas = document.getElementById('canvasOne');
+        var ctx = canvas.getContext('2d');
+        var w = canvas.width = window.innerWidth;
+        var h = canvas.height = window.innerHeight;
+        var score = 0;
+        var snake;
+        var snakeSize = 10;
+        var food;
+
+        var drawModule = (function() {
+
+            var bodySnake = function(x, y) {
+                ctx.fillStyle = 'green';
+                ctx.fillRect(x * snakeSize, y * snakeSize, snakeSize, snakeSize);
+                ctx.strokeStyle = 'darkgreen';
+                ctx.strokeRect(x * snakeSize, y * snakeSize, snakeSize, snakeSize);
+            }
+
+            var pizza = function(x, y) {
+                ctx.fillStyle = 'yellow';
+                ctx.fillRect(x * snakeSize, y * snakeSize, snakeSize, snakeSize);
+                ctx.fillStyle = 'red';
+                ctx.fillRect(x * snakeSize + 1, y * snakeSize + 1, snakeSize - 2, snakeSize - 2);
+            }
+
+            var scoreText = function() {
+                var score_text = "Score: " + score;
+                var cw = ctx.measureText(score_text);
+                ctx.fillStyle = 'blue';
+                ctx.font = '30px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText(score_text, w / 2, h - 20);
+            }
+
+            var drawSnake = function() {
+                var length = 4;
+                snake = [];
+                for (var i = length - 1; i >= 0; i--) {
+                    snake.push({
+                        x: i,
+                        y: 0
+                    });
+                }
+            }
+
+            var paint = function() {
+                ctx.fillStyle = 'lightslategrey';
+                ctx.fillRect(0, 0, w, h);
+                ctx.strokeStyle = '#000';
+                ctx.strokeRect(0, 0, w, h);
+
+                btn.setAttribute('disabled', true);
+
+                var snakeX = snake[0].x;
+                var snakeY = snake[0].y;
+
+                if (direction == 'right') {
+                    snakeX++;
+                } else if (direction == 'left') {
+                    snakeX--;
+                } else if (direction == 'up') {
+                    snakeY--;
+                } else if (direction == 'down') {
+                    snakeY++;
+                }
+
+                if (snakeX == -1 || snakeX == w / snakeSize || snakeY == -1 || snakeY == h / snakeSize || checkCollision(snakeX, snakeY, snake)) {
+                    //restart game
+                    control.style.display = 'block';
+                    btn.removeAttribute('disabled', true);
+
+                    ctx.clearRect(0, 0, w, h);
+                    gameloop = clearInterval(gameloop);
+                    return;
+                }
+
+                if (snakeX == food.x && snakeY == food.y) {
+                    var tail = {
+                        x: snakeX,
+                        y: snakeY
+                    }; //Create a new head instead of moving the tail
+                    score++;
+
+                    createFood(); //Create new food
+                } else {
+                    var tail = snake.pop(); //pops out the last cell
+                    tail.x = snakeX;
+                    tail.y = snakeY;
+                }
+                //The snake can now eat the food.
+                snake.unshift(tail); //puts back the tail as the first cell
+
+                for (var i = 0; i < snake.length; i++) {
+                    bodySnake(snake[i].x, snake[i].y);
+                }
+
+                pizza(food.x, food.y);
+                scoreText();
+            }
+
+            var createFood = function() {
+                food = {
+                    x: Math.floor((Math.random() * 30) + 1),
+                    y: Math.floor((Math.random() * 30) + 1)
+                }
+
+                for (var i = 0; i > snake.length; i++) {
+                    var snakeX = snake[i].x;
+                    var snakeY = snake[i].y;
+
+                    if (food.x === snakeX && food.y === snakeY || food.y === snakeY && food.x === snakeX) {
+                        food.x = Math.floor((Math.random() * 30) + 1);
+                        food.y = Math.floor((Math.random() * 30) + 1);
+                    }
+                }
+            }
+
+            var checkCollision = function(x, y, array) {
+                for (var i = 0; i < array.length; i++) {
+                    if (array[i].x === x && array[i].y === y)
+                        return true;
+                }
+                return false;
+            }
+
+            var init = function() {
+                direction = 'down';
+                drawSnake();
+                createFood();
+                gameloop = setInterval(paint, 80);
+            }
+
+
+            return {
+                init: init
+            };
+
+
+        }());
+        (function(window, document, drawModule, undefined) {
+
+            var btn = document.getElementById('btn');
+            var control = document.getElementById('control');
+            btn.addEventListener("click", function() {
+                control.style.display = 'none';
+                drawModule.init();
+            });
+
+            document.onkeydown = function(event) {
+
+                keyCode = window.event.keyCode;
+                keyCode = event.keyCode;
+
+                switch (keyCode) {
+
+                    case 37:
+                        if (direction != 'right') {
+                            direction = 'left';
+                        }
+                        console.log('left');
+                        break;
+
+                    case 39:
+                        if (direction != 'left') {
+                            direction = 'right';
+                            console.log('right');
+                        }
+                        break;
+
+                    case 38:
+                        if (direction != 'down') {
+                            direction = 'up';
+                            console.log('up');
+                        }
+                        break;
+
+                    case 40:
+                        if (direction != 'up') {
+                            direction = 'down';
+                            console.log('down');
+                        }
+                        break;
+                }
+            }
+
+
+        })(window, document, drawModule);
+    </script>
+</body>
+
+</html>
